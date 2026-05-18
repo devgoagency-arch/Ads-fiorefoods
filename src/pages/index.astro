@@ -1,0 +1,275 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Catalogue from '../components/Catalogue.astro';
+
+const BASE_PRODUCTS_MOCK = [
+  {
+    sku: 'LF-APRIC-12X310G',
+    name: 'La Favorita Apricots with Moscato Wine',
+    description: 'Product of Italy',
+    caseSize: '12x310g',
+    price: 92.88,
+    img: '/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg',
+  },
+  {
+    sku: 'GF-DRFIG-20X500G',
+    name: 'Good Fig Dried Figs',
+    description: 'Calabazita variety of Figs. Tender and all natural. Gluten, and Sulphites free.',
+    caseSize: '20x500g',
+    price: 116.00,
+    img: '/img/GF-Dried-Figs.jpg',
+  },
+  {
+    sku: 'SDJ-1573-EVOO-9X500ML',
+    name: 'Señorío DJR 1573 Extra Virgin Olive Oil',
+    description: 'Exclusive reserva extravirgin olive oil brought exclusively for the holidays. This oil is the result of combining different varieties of olives such as the Arbequina Verde, Arbequina Madura and local varieties of the area: Alfafarenca,Blanqueta and Manzanilla.<br>No mechanical equipment is used for the harvest, olives are picked manually and transported immediately to the mill to extract the precious oil.<br>Product of Spain.',
+    caseSize: '9x500ml',
+    price: 241.65,
+    img: '/img/Senorio-DJR-1573-EVOO-1.jpg',
+  },
+  {
+    sku: 'PAN-DPAN-4X950G',
+    name: 'Pancracio Dark Chocolate Panettone',
+    description: 'Level up your Holiday offers, with this sourdough Panettone. Prepared in small batches, with the exclusive ÚNICO Pancracio 68% cocoa coating, made from the best Criollo and Trinitario beans, mixing them to obtain a fruity chocolate with a slight acid note.<br>NO TRANSFATTY ACIDS/PRESERVATIVES ADDED.<br>Product of Spain.',
+    caseSize: '4x950g',
+    price: 245.96,
+    img: '/img/Pancracio-Dark-Chocolate-Pannetone-e1668454992856 (1).jpg',
+  }
+];
+
+let finalProducts = BASE_PRODUCTS_MOCK;
+
+try {
+  // WooCommerce Server-Side Fetch
+  const WC_API_URL = import.meta.env.WC_API_URL;
+  const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY;
+  const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET;
+
+  if (WC_API_URL && WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
+    const authHeader = 'Basic ' + btoa(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`);
+    let allData = [];
+    let page = 1;
+    let hasMore = true;
+
+    // Get category ID for 'holiday-seasonal' to filter API response
+    let categoryId = null;
+    try {
+      const catUrl = import.meta.env.WC_API_URL + `/products/categories?slug=holiday-seasonal`;
+      const catRes = await fetch(catUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (catRes.ok) {
+        const catData = await catRes.json();
+        if (catData && catData.length > 0) {
+          categoryId = catData[0].id;
+          console.log("[WC API] Found category ID for holiday-seasonal:", categoryId);
+        }
+      }
+    } catch (e) {
+      console.warn("[WC API] Could not fetch category ID for holiday-seasonal", e);
+    }
+
+    while (hasMore) {
+      let fetchUrl = import.meta.env.WC_API_URL + `/products?per_page=100&page=${page}&status=publish&orderby=menu_order&order=asc`;
+      if (categoryId) {
+        fetchUrl += `&category=${categoryId}`;
+      }
+      
+      console.log("Intentando conectar a:", fetchUrl);
+
+      const res = await fetch(fetchUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        allData = allData.concat(data);
+        if (data.length < 100) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      } else {
+        console.warn(`[WC API] Returned status ${res.status}. Stopping fetch.`);
+        hasMore = false;
+      }
+    }
+
+    if (allData.length > 0) {
+      finalProducts = allData.reduce((acc: any[], item: any) => {
+
+        // Enforce that the product has the holiday-seasonal category
+        const hasHolidaySeasonal = item.categories?.some((c: any) => c.slug === 'holiday-seasonal');
+        if (!hasHolidaySeasonal) return acc;
+
+        // Ignore child categories and group everything under a single category pill
+        const finalCategory = "Holiday Seasonal";
+
+        let rawContent = item.description ? item.description : (item.short_description || "");
+        
+        let plainDesc = "";
+        if (rawContent) {
+          let preSpaced = rawContent.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
+          plainDesc = preSpaced.replace(/<\/?[^>]+(>|$)/g, " ").replace(/\s+/g, " ").trim();
+        }
+          
+        let caseSize = "N/A";
+        // Regex to match "Case Size: value" dropping the period bound as it caused N/A faults
+        const caseRegex = /Case(?: Size)?\s*:\s*([^<\n\.]+)/i;
+        const match = plainDesc.match(caseRegex);
+
+        if (match && match[1]) {
+          caseSize = match[1].trim();
+          plainDesc = plainDesc.replace(match[0], "").trim();
+          plainDesc = plainDesc.replace(/^[\.,\-\s]+|[\.,\-\s]+$/g, "");
+        } else {
+          const caseAttr = item.attributes?.find((a: any) => 
+            a.name.toLowerCase() === 'case size' || a.name.toLowerCase() === 'casesize'
+          );
+          if (caseAttr && caseAttr.options?.length > 0) {
+            caseSize = caseAttr.options[0];
+          }
+        }
+
+        const mappedProd = {
+          id: item.id,
+          sku: item.sku || `WC-${item.id}`,
+          name: item.name.replace(/&amp;/g, '&'),
+          description: plainDesc,
+          caseSize: caseSize,
+          price: parseFloat(item.price) || 0,
+          img: item.images && item.images.length > 0 ? item.images[0].src : null,
+          category: finalCategory
+        };
+        
+        acc.push(mappedProd);
+        return acc;
+      }, []);
+
+      console.log(`[WC API] Successfully fetched and parsed ${finalProducts.length} published products.`);
+    } else {
+      console.warn(`[WC API] Failed to fetch data. Falling back to mock data.`);
+    }
+  }
+} catch (error) {
+  console.error('[WC API] Network or fetch error. Falling back to BASE_PRODUCTS_MOCK.', error);
+}
+---
+
+<Layout title="Fiore Foods - Holiday Seasonal Pre-Order Portal">
+
+  <!-- ════════════════════════════════════════════════════════════
+       2 · HERO — SPLIT LAYOUT
+  ════════════════════════════════════════════════════════════════ -->
+  <section class="flex flex-col sm:flex-row overflow-hidden min-h-[500px] sm:max-h-[600px]">
+    <div class="hero-left relative flex items-center justify-center text-center w-full sm:w-5/12 px-6 sm:px-10 md:px-14 py-12 sm:py-14 flex-shrink-0 min-h-[300px] sm:min-h-[500px]">
+      <div class="absolute inset-0 flex items-end justify-start pointer-events-none overflow-hidden">
+        <img src="img/olives-4 (1).png" alt="Decoración de fondo" class="w-56 opacity-60 mb-2 ml-4 parallax parallax-1">
+      </div>
+      <div class="relative z-10 max-w-xs mx-auto">
+        <h1 class="font-cap text-white leading-snug mb-4" style="font-size:clamp(22px,3.5vw,30px)">
+          Get Your Business Ready for the Holidays
+        </h1>
+        <div class="inline-block px-4 py-2 mt-2 rounded font-rob text-sm font-bold tracking-wide" style="background:#80131d; color:white;">
+          Pre-order deadline: June 5th
+        </div>
+      </div>
+    </div>
+    <div class="relative flex-1 overflow-hidden">
+      <img src="img/fiore-foods-holiday-seasonal-2026.jpg" alt="Specialty gourmet foods spread" class="absolute inset-0 w-full h-full object-cover">
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════
+       3 · INSTRUCTION BANNER
+  ════════════════════════════════════════════════════════════════ -->
+  <section style="background:#acb370">
+    <div class="max-w-5xl mx-auto px-6 py-6">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-0">
+        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">1</div>
+          <div>
+            <p class="font-cap text-white text-lg font-bold">Select Products</p>
+            <p class="text-white/70 text-base font-rob">Choose case quantities from the catalogue</p>
+          </div>
+        </div>
+        <div class="arrow-step hidden sm:block px-3">›</div>
+        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">2</div>
+          <div>
+            <p class="font-cap text-white text-lg font-bold">Enter Your Info</p>
+            <p class="text-white/70 text-base font-rob">Fill in your contact &amp; company details</p>
+          </div>
+        </div>
+        <div class="arrow-step hidden sm:block px-3">›</div>
+        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">3</div>
+          <div>
+            <p class="font-cap text-white text-lg font-bold">Send Pre-Order</p>
+            <p class="text-white/70 text-base font-rob">Submit — we'll prepare your Sales Order</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="max-w-4xl mx-auto px-6 py-12 text-center">
+    <p class="text-[18px] font-rob text-gray-700 leading-relaxed">
+      <strong style="color:#80131d">The holiday season is just around the corner — </strong>
+      and we want to make sure your shelves are stocked with the best. Here are our top picks for this year's Holiday Catalogue. Place your pre-order before June 5th and give your customers a season to remember.
+    </p>
+  </section>
+
+  <Catalogue products={finalProducts} />
+
+  <!-- ════════════════════════════════════════════════════════════
+       5 · ABOUT SECTION
+  ════════════════════════════════════════════════════════════════ -->
+  <section class="relative overflow-hidden py-20" style="background:#f5f3ef">
+    <div class="botanical-float" aria-hidden="true">
+      <img src="img/thyme.png" alt="Decoración de fondo" class="parallax parallax-2 w-[260px] opacity-100">
+    </div>
+    <div class="relative max-w-7xl mx-auto px-6 z-10">
+      <div class="grid lg:grid-cols-2 gap-14 items-center">
+        <div>
+          <p class="font-rob text-xs font-medium mb-2" style="color:#a81624; letter-spacing:.05em">Good taste</p>
+          <h2 class="font-cap leading-snug mb-5" style="color:#a81624; font-size:clamp(20px,2.5vw,28px)">
+            WE ARE QUALITY,<br>COMMITMENT,<br>RESPONSIBILITY AND<br>EXPERTISE
+          </h2>
+          <p class="font-rob font-medium text-base lg:text-lg leading-relaxed mb-4" style="color:#a81624">
+            Fiore Foods results from our family's passion for delicious food and the vision of having the most specialized gourmet products, straight from the Mediterranean.
+          </p>
+          <p class="font-rob text-base lg:text-lg leading-relaxed text-gray-600 mb-3">
+            We are an ever-growing team committed to sourcing high-quality and diverse food products to specialty food stores, Cheese Shops, Restaurants, Online markets and more.
+          </p>
+          <p class="font-rob text-base lg:text-lg leading-relaxed text-gray-600 mb-3">
+            Our portfolio includes from tasty and savoury snacks to the most exquisite artisan sweets.
+          </p>
+          <p class="font-rob text-base lg:text-lg font-bold mb-7" style="color:#80131d">
+            Your customers will fall in love with our collections.
+          </p>
+          <button onclick="document.getElementById('catalogue')?.scrollIntoView({behavior: 'smooth'})" class="btn btn-red px-8 py-3 text-sm font-cap tracking-wide">
+            GET STARTED
+          </button>
+        </div>
+        <div class="relative h-[440px]">
+          <div class="absolute top-0 left-0 w-[62%] h-[62%] rounded-2xl overflow-hidden shadow-lg">
+            <img src="img/pic-fiore-foods-2.jpg" alt="Gourmet Mediterranean food spread" class="w-full h-full object-cover">
+          </div>
+          <div class="absolute bottom-0 right-0 w-[58%] h-[62%] rounded-2xl overflow-hidden shadow-lg" style="border:4px solid #f5f3ef">
+            <img src="img/fiore-foods-mediterraneo-fot-02.jpg" alt="Olive grove harvesting" class="w-full h-full object-cover">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Layout>
