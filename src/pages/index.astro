@@ -233,8 +233,16 @@ try {
 
 const findBestProductForBrand = (brandName: string, index: number = 0) => {
   const brandProducts = brandProductsMap[brandName] || [];
+  const mockItems = (MOCK_BRANDS as any)[brandName] || [];
+  const mockItem = mockItems[index % mockItems.length];
+
   if (brandProducts.length > index) {
-    return brandProducts[index];
+    const prod = brandProducts[index];
+    return {
+      ...prod,
+      description: prod.description && prod.description.trim() !== "" ? prod.description : (mockItem ? mockItem.description : "Premium quality imported product."),
+      caseSize: prod.caseSize && prod.caseSize !== "N/A" ? prod.caseSize : (mockItem ? mockItem.caseSize : "Case size on request")
+    };
   }
   
   // Fallback to checking the category wcProducts
@@ -244,12 +252,15 @@ const findBestProductForBrand = (brandName: string, index: number = 0) => {
     return normName.includes(normBrand) || (brandName === "Don Jose" && normName.includes("josé"));
   });
   if (matches.length > index) {
-    return matches[index];
+    const prod = matches[index];
+    return {
+      ...prod,
+      description: prod.description && prod.description.trim() !== "" ? prod.description : (mockItem ? mockItem.description : "Premium quality imported product."),
+      caseSize: prod.caseSize && prod.caseSize !== "N/A" ? prod.caseSize : (mockItem ? mockItem.caseSize : "Case size on request")
+    };
   }
 
   // Fallback to beautiful mock item
-  const mockItems = (MOCK_BRANDS as any)[brandName] || [];
-  const mockItem = mockItems[index % mockItems.length];
   return {
     id: 9000 + index + Math.floor(Math.random() * 1000),
     sku: `MOCK-${brandName.toUpperCase().replace(' ', '-')}-${index}`,
@@ -653,7 +664,7 @@ const finalBrandsData = BRANDS_LIST.map(brand => {
             const m = document.getElementById('details-modal');
             if (m) m.classList.add('hidden');
           };
-          descEl.appendChild(closeBtn);
+          descEl.parentNode.appendChild(closeBtn);
         }
 
         // Show details modal

@@ -5,9 +5,21 @@ export interface Props {
   title: string;
   robots?: string;
   gtmId?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
 }
 
-const { title, robots = "index, follow", gtmId } = Astro.props;
+const { 
+  title, 
+  robots = "index, follow", 
+  gtmId,
+  ogTitle = "Specialty and Fine Foods for Your Store | Fiore Foods Canada",
+  ogDescription = "We distribute exclusive Spanish, Italian, and Mediterranean gourmet brands to specialty food stores, fine food retailers, and independent grocers across Canada. Direct import from Spain & Italy.",
+  ogImage = "/img/fiore-foods-canada-spain-italy-mediterranean-food-Ontario.jpg"
+} = Astro.props;
+
+const canonicalImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, Astro.url).toString();
 ---
 
 <!DOCTYPE html>
@@ -29,11 +41,12 @@ const { title, robots = "index, follow", gtmId } = Astro.props;
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>{title}</title>
+  <meta name="description" content={ogDescription} />
   
   <!-- Open Graph & Twitter Cards -->
-  <meta property="og:title" content="Fiore Foods - Holiday Seasonal Pre-Order Portal" />
-  <meta property="og:description" content="Secure your seasonal inventory. Pre-order deadline: June 5th." />
-  <meta property="og:image" content="https://seasonal.fiorefoodscanada.com/img/fiore-foods-holiday-seasonal-2026.jpg" />
+  <meta property="og:title" content={ogTitle} />
+  <meta property="og:description" content={ogDescription} />
+  <meta property="og:image" content={canonicalImage} />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -150,8 +163,8 @@ const { title, robots = "index, follow", gtmId } = Astro.props;
 
 </div>
 
-<!-- Floating back to catalog button -->
-<button id="btn-back-catalog" onclick="document.getElementById('catalogue')?.scrollIntoView({behavior: 'smooth'})" class="fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-[100]" style="background:#80131d; color:white" title="Back to Catalogue">
+<!-- Floating back to top button -->
+<button id="btn-back-catalog" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="fixed bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-[100]" style="background:#80131d; color:white" title="Scroll to Top">
   <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
     <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
   </svg>
@@ -218,6 +231,12 @@ const { title, robots = "index, follow", gtmId } = Astro.props;
 </div>
 
 <script is:inline>
+  // Global modal close function
+  window.closeDetailsModal = function() {
+    const modal = document.getElementById('details-modal');
+    if (modal) modal.classList.add('hidden');
+  };
+
   // Show/Hide Floating Button on window scroll
   window.addEventListener('scroll', () => {
     const btn = document.getElementById('btn-back-catalog');
