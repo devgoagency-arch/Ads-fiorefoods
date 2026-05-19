@@ -1,43 +1,61 @@
 ---
+// src/pages/index.astro
+// Refactored homepage for Google Ads B2B Campaign - Fiore Foods Canada
 import Layout from '../layouts/Layout.astro';
-import Catalogue from '../components/Catalogue.astro';
+import AdsForm from '../components/AdsForm.astro';
 
-const BASE_PRODUCTS_MOCK = [
-  {
-    sku: 'LF-APRIC-12X310G',
-    name: 'La Favorita Apricots with Moscato Wine',
-    description: 'Product of Italy',
-    caseSize: '12x310g',
-    price: 92.88,
-    img: '/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg',
-  },
-  {
-    sku: 'GF-DRFIG-20X500G',
-    name: 'Good Fig Dried Figs',
-    description: 'Calabazita variety of Figs. Tender and all natural. Gluten, and Sulphites free.',
-    caseSize: '20x500g',
-    price: 116.00,
-    img: '/img/GF-Dried-Figs.jpg',
-  },
-  {
-    sku: 'SDJ-1573-EVOO-9X500ML',
-    name: 'Señorío DJR 1573 Extra Virgin Olive Oil',
-    description: 'Exclusive reserva extravirgin olive oil brought exclusively for the holidays. This oil is the result of combining different varieties of olives such as the Arbequina Verde, Arbequina Madura and local varieties of the area: Alfafarenca,Blanqueta and Manzanilla.<br>No mechanical equipment is used for the harvest, olives are picked manually and transported immediately to the mill to extract the precious oil.<br>Product of Spain.',
-    caseSize: '9x500ml',
-    price: 241.65,
-    img: '/img/Senorio-DJR-1573-EVOO-1.jpg',
-  },
-  {
-    sku: 'PAN-DPAN-4X950G',
-    name: 'Pancracio Dark Chocolate Panettone',
-    description: 'Level up your Holiday offers, with this sourdough Panettone. Prepared in small batches, with the exclusive ÚNICO Pancracio 68% cocoa coating, made from the best Criollo and Trinitario beans, mixing them to obtain a fruity chocolate with a slight acid note.<br>NO TRANSFATTY ACIDS/PRESERVATIVES ADDED.<br>Product of Spain.',
-    caseSize: '4x950g',
-    price: 245.96,
-    img: '/img/Pancracio-Dark-Chocolate-Pannetone-e1668454992856 (1).jpg',
-  }
-];
+// High-quality Gourmet B2B Products Mock Data (used as pristine fallback)
+const MOCK_BRANDS = {
+  "La Narval": [
+    { name: "La Narval (Sardinas en Aceite de Oliva)", category: "Seafood", caseSize: "12x115g", description: "Premium Spanish sardines preserved in rich, authentic olive oil. A true delicatessen from Galicia.", img: "/img/Senorio-DJR-1573-EVOO-1.jpg" },
+    { name: "La Narval (Mejillones en Escabeche)", category: "Seafood", caseSize: "12x115g", description: "Savory Mediterranean mussels in traditional vinegar marinade. Hand-packed for supreme quality.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" },
+    { name: "La Narval (Ventresca de Atún Claro)", category: "Seafood", caseSize: "12x115g", description: "Tender, high-quality white tuna belly in rich olive oil. Melt-in-your-mouth texture.", img: "/img/GF-Dried-Figs.jpg" },
+    { name: "La Narval (Caballa en Aceite de Oliva)", category: "Seafood", caseSize: "12x115g", description: "Flaky Spanish mackerel fillets preserved in rich olive oil. Excellent savory addition.", img: "/img/Senorio-DJR-1573-EVOO-1.jpg" }
+  ],
+  "Pancracio": [
+    { name: "Pancracio (Caramelized Nuts Milk Chocolate Bar)", category: "Chocolates", caseSize: "10x100g", description: "Creamy artisanal milk chocolate bar studded with crunchy caramelized nuts. Prepared in small batches.", img: "/img/Pancracio-Dark-Chocolate-Pannetone-e1668454992856 (1).jpg" },
+    { name: "Pancracio (Dark Chocolate Fleur de Sel)", category: "Chocolates", caseSize: "10x100g", description: "Intense dark chocolate bar perfectly balanced with hand-harvested sea salt. Elegant and sophisticated.", img: "/img/Pancracio-Dark-Chocolate-Pannetone-e1668454992856 (1).jpg" },
+    { name: "Pancracio (White Chocolate with Strawberries)", category: "Chocolates", caseSize: "10x100g", description: "Silky white chocolate bar paired with sweet, freeze-dried strawberry bits. Delightful summer notes.", img: "/img/Pancracio-Dark-Chocolate-Pannetone-e1668454992856 (1).jpg" },
+    { name: "Pancracio (Dark Chocolate 70% Cocoa Nibs)", category: "Chocolates", caseSize: "10x100g", description: "Decadent dark chocolate bar loaded with roasted and crunchy cocoa nibs. Deep rich taste.", img: "/img/Pancracio-Dark-Chocolate-Pannetone-e1668454992856 (1).jpg" }
+  ],
+  "Lady Joseph": [
+    { name: "Lady Joseph (Smoked Hot Paprika & Olive Oil Crackers)", category: "Biscuits", caseSize: "16x100g", description: "Crisp gourmet crackers baked with smoky Spanish hot paprika and fine olive oil. Flaky and savory.", img: "/img/GF-Dried-Figs.jpg" },
+    { name: "Lady Joseph (Truffle & Olive Oil Crackers)", category: "Biscuits", caseSize: "16x100g", description: "Exquisite, flaky crackers flavored with aromatic black truffle essence. Perfect with fine cheese.", img: "/img/GF-Dried-Figs.jpg" },
+    { name: "Lady Joseph (Sweet Apple & Cinnamon Biscuits)", category: "Biscuits", caseSize: "12x100g", description: "Deliciously sweet artisanal biscuits with natural apple and warm cinnamon. Rich tea companion.", img: "/img/GF-Dried-Figs.jpg" },
+    { name: "Lady Joseph (Provencal Herbs Crackers)", category: "Biscuits", caseSize: "16x100g", description: "Savory crackers featuring a curated aromatic blend of Mediterranean French herbs.", img: "/img/GF-Dried-Figs.jpg" }
+  ],
+  "Origen": [
+    { name: "Origen (Red Pepper Jam)", category: "Preserves", caseSize: "12x150g", description: "Rich, sweet and savory red pepper jam, perfect for pairing with fine cheeses and charcuterie.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" },
+    { name: "Origen (Sweet Onion Jam)", category: "Preserves", caseSize: "12x150g", description: "Slowly caramelized sweet onion jam with a deep, rich traditional Spanish flavor profile.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" },
+    { name: "Origen (Fig Jam with Walnuts)", category: "Preserves", caseSize: "12x150g", description: "Mediterranean sweet fig preserve enhanced with toasted and crunchy walnut bits. Exceptional texture.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" },
+    { name: "Origen (Tomato Savoury Jam)", category: "Preserves", caseSize: "12x150g", description: "Artisanal sweet tomato jam crafted from ripe vine tomatoes. Rich, classic Mediterranean recipe.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" }
+  ],
+  "Don Jose": [
+    { name: "Don Jose (Jamón Serrano Gran Reserva)", category: "Charcuterie", caseSize: "8x100g", description: "Premium dry-cured Spanish Serrano ham, aged carefully to develop intense savory flavor.", img: "/img/GF-Dried-Figs.jpg" },
+    { name: "Don Jose (Paleta Ibérica de Bellota)", category: "Charcuterie", caseSize: "8x100g", description: "Luxurious dry-cured Iberian shoulder from acorn-fed free-range hogs. Intensely marbled.", img: "/img/GF-Dried-Figs.jpg" },
+    { name: "Don Jose (Chorizo Ibérico Vela)", category: "Charcuterie", caseSize: "10x100g", description: "Authentic, dry-cured Spanish Iberian pork sausage spiced with fine smoked paprika.", img: "/img/GF-Dried-Figs.jpg" },
+    { name: "Don Jose (Salchichón Ibérico Vela)", category: "Charcuterie", caseSize: "10x100g", description: "Traditional dry-cured Spanish pork salami seasoned with garlic and black peppercorns.", img: "/img/GF-Dried-Figs.jpg" }
+  ],
+  "Inessence": [
+    { name: "Inessence (Black Truffle Potato Crisp)", category: "Snacks", caseSize: "20x125g", description: "Ultra-premium Spanish potato crisps flavored with luxurious Spanish black truffle.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" },
+    { name: "Inessence (Himalayan Pink Salt Crisps)", category: "Snacks", caseSize: "20x125g", description: "Gourmet, kettle-cooked potato crisps sprinkled lightly with fine Himalayan pink salt.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" },
+    { name: "Inessence (Olive Oil & Sea Salt Crisps)", category: "Snacks", caseSize: "20x125g", description: "Classic, crunchy premium potato crisps fried in extra virgin olive oil and lightly salted.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" },
+    { name: "Inessence (Jamón Ibérico Flavor Crisps)", category: "Snacks", caseSize: "20x125g", description: "Distinctive, premium potato crisps capturing the rich, savory taste of Spanish Iberian ham.", img: "/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg" }
+  ]
+};
 
-let finalProducts = BASE_PRODUCTS_MOCK;
+let wcProducts = [];
+const brandProductsMap: Record<string, any[]> = {};
+
+const BRANDS_LIST = ["La Narval", "Pancracio", "Lady Joseph", "Origen", "Don Jose", "Inessence"];
+const BRAND_IDS: Record<string, number> = {
+  "La Narval": 229,
+  "Pancracio": 230,
+  "Lady Joseph": 231,
+  "Origen": 232,
+  "Don Jose": 233,
+  "Inessence": 234
+};
 
 try {
   // WooCommerce Server-Side Fetch
@@ -47,14 +65,15 @@ try {
 
   if (WC_API_URL && WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
     const authHeader = 'Basic ' + btoa(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`);
+
+    // 1. Fetch category-based products for general search / catalog fallbacks
     let allData = [];
     let page = 1;
     let hasMore = true;
-
-    // Get category ID for 'holiday-seasonal' to filter API response
     let categoryId = null;
+
     try {
-      const catUrl = import.meta.env.WC_API_URL + `/products/categories?slug=holiday-seasonal`;
+      const catUrl = WC_API_URL + `/products/categories?slug=holiday-seasonal`;
       const catRes = await fetch(catUrl, {
         method: 'GET',
         headers: {
@@ -66,21 +85,19 @@ try {
         const catData = await catRes.json();
         if (catData && catData.length > 0) {
           categoryId = catData[0].id;
-          console.log("[WC API] Found category ID for holiday-seasonal:", categoryId);
         }
       }
     } catch (e) {
       console.warn("[WC API] Could not fetch category ID for holiday-seasonal", e);
     }
 
-    while (hasMore) {
-      let fetchUrl = import.meta.env.WC_API_URL + `/products?per_page=100&page=${page}&status=publish&orderby=menu_order&order=asc`;
+    // Gentle fetch: limit to 2 pages of 40 products to avoid remote server timeouts
+    for (let p = 1; p <= 2; p++) {
+      let fetchUrl = WC_API_URL + `/products?per_page=40&page=${p}&status=publish&orderby=menu_order&order=asc`;
       if (categoryId) {
         fetchUrl += `&category=${categoryId}`;
       }
       
-      console.log("Intentando conectar a:", fetchUrl);
-
       const res = await fetch(fetchUrl, {
         method: 'GET',
         headers: {
@@ -92,29 +109,23 @@ try {
       if (res.ok) {
         const data = await res.json();
         allData = allData.concat(data);
-        if (data.length < 100) {
-          hasMore = false;
-        } else {
-          page++;
+        if (data.length < 40) {
+          break;
         }
       } else {
-        console.warn(`[WC API] Returned status ${res.status}. Stopping fetch.`);
-        hasMore = false;
+        break;
       }
     }
 
     if (allData.length > 0) {
-      finalProducts = allData.reduce((acc: any[], item: any) => {
-
-        // Enforce that the product has the holiday-seasonal category
-        const hasHolidaySeasonal = item.categories?.some((c: any) => c.slug === 'holiday-seasonal');
-        if (!hasHolidaySeasonal) return acc;
-
-        // Ignore child categories and group everything under a single category pill
-        const finalCategory = "Holiday Seasonal";
+      wcProducts = allData.reduce((acc: any[], item: any) => {
+        let finalCategory = "Holiday Seasonal";
+        const otherCat = item.categories?.find((c: any) => c.slug !== 'holiday-seasonal' && c.slug !== 'uncategorized');
+        if (otherCat) {
+          finalCategory = otherCat.name;
+        }
 
         let rawContent = item.description ? item.description : (item.short_description || "");
-        
         let plainDesc = "";
         if (rawContent) {
           let preSpaced = rawContent.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
@@ -122,7 +133,6 @@ try {
         }
           
         let caseSize = "N/A";
-        // Regex to match "Case Size: value" dropping the period bound as it caused N/A faults
         const caseRegex = /Case(?: Size)?\s*:\s*([^<\n\.]+)/i;
         const match = plainDesc.match(caseRegex);
 
@@ -139,137 +149,542 @@ try {
           }
         }
 
-        const mappedProd = {
+        acc.push({
           id: item.id,
           sku: item.sku || `WC-${item.id}`,
           name: item.name.replace(/&amp;/g, '&'),
           description: plainDesc,
           caseSize: caseSize,
-          price: parseFloat(item.price) || 0,
           img: item.images && item.images.length > 0 ? item.images[0].src : null,
           category: finalCategory
-        };
-        
-        acc.push(mappedProd);
+        });
         return acc;
       }, []);
-
-      console.log(`[WC API] Successfully fetched and parsed ${finalProducts.length} published products.`);
-    } else {
-      console.warn(`[WC API] Failed to fetch data. Falling back to mock data.`);
     }
+
+    // 2. Fetch brand products directly by Brand IDs in parallel
+    const brandFetches = Object.entries(BRAND_IDS).map(async ([brandName, brandId]) => {
+      try {
+        const fetchUrl = `${WC_API_URL}/products?brand=${brandId}&per_page=4&status=publish`;
+        const res = await fetch(fetchUrl, {
+          method: 'GET',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/json'
+          }
+        });
+        if (res.ok) {
+          const items = await res.json();
+          const parsed = items.map((item: any) => {
+            let rawContent = item.description ? item.description : (item.short_description || "");
+            let plainDesc = "";
+            if (rawContent) {
+              let preSpaced = rawContent.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
+              plainDesc = preSpaced.replace(/<\/?[^>]+(>|$)/g, " ").replace(/\s+/g, " ").trim();
+            }
+              
+            let caseSize = "N/A";
+            const caseRegex = /Case(?: Size)?\s*:\s*([^<\n\.]+)/i;
+            const match = plainDesc.match(caseRegex);
+
+            if (match && match[1]) {
+              caseSize = match[1].trim();
+              plainDesc = plainDesc.replace(match[0], "").trim();
+              plainDesc = plainDesc.replace(/^[\.,\-\s]+|[\.,\-\s]+$/g, "");
+            } else {
+              const caseAttr = item.attributes?.find((a: any) => 
+                a.name.toLowerCase() === 'case size' || a.name.toLowerCase() === 'casesize'
+              );
+              if (caseAttr && caseAttr.options?.length > 0) {
+                caseSize = caseAttr.options[0];
+              }
+            }
+
+            let finalCategory = brandName;
+            const primaryCat = item.categories?.find((c: any) => c.slug !== 'uncategorized');
+            if (primaryCat) {
+              finalCategory = primaryCat.name;
+            }
+
+            return {
+              id: item.id,
+              sku: item.sku || `WC-${item.id}`,
+              name: item.name.replace(/&amp;/g, '&'),
+              description: plainDesc,
+              caseSize: caseSize,
+              img: item.images && item.images.length > 0 ? item.images[0].src : null,
+              category: finalCategory
+            };
+          });
+          brandProductsMap[brandName] = parsed;
+        } else {
+          console.warn(`[WC API] Failed to fetch products for brand ${brandName}: status ${res.status}`);
+        }
+      } catch (e) {
+        console.error(`[WC API] Error fetching products for brand ${brandName}`, e);
+      }
+    });
+
+    await Promise.all(brandFetches);
   }
 } catch (error) {
-  console.error('[WC API] Network or fetch error. Falling back to BASE_PRODUCTS_MOCK.', error);
+  console.error('[WC API] Error during WooCommerce fetching. Using mock fallbacks.', error);
 }
+
+const findBestProductForBrand = (brandName: string, index: number = 0) => {
+  const brandProducts = brandProductsMap[brandName] || [];
+  if (brandProducts.length > index) {
+    return brandProducts[index];
+  }
+  
+  // Fallback to checking the category wcProducts
+  const normBrand = brandName.toLowerCase().replace(' ', '');
+  const matches = wcProducts.filter((p: any) => {
+    const normName = p.name.toLowerCase().replace(' ', '');
+    return normName.includes(normBrand) || (brandName === "Don Jose" && normName.includes("josé"));
+  });
+  if (matches.length > index) {
+    return matches[index];
+  }
+
+  // Fallback to beautiful mock item
+  const mockItems = (MOCK_BRANDS as any)[brandName] || [];
+  const mockItem = mockItems[index % mockItems.length];
+  return {
+    id: 9000 + index + Math.floor(Math.random() * 1000),
+    sku: `MOCK-${brandName.toUpperCase().replace(' ', '-')}-${index}`,
+    name: mockItem.name,
+    description: mockItem.description,
+    caseSize: mockItem.caseSize,
+    img: mockItem.img,
+    category: mockItem.category
+  };
+};
+
+// 1. Exactly 6 Featured Products (1 per brand keyword, no pills)
+const finalFeaturedProducts = BRANDS_LIST.map((brand, idx) => findBestProductForBrand(brand, 0));
+
+// 2. Exactly 4 products per brand for the filterable Brand Showcase
+const finalBrandsData = BRANDS_LIST.map(brand => {
+  const products = [];
+  for (let i = 0; i < 4; i++) {
+    products.push(findBestProductForBrand(brand, i));
+  }
+  return {
+    name: brand,
+    products
+  };
+});
 ---
 
-<Layout title="Fiore Foods - Holiday Seasonal Pre-Order Portal">
+<Layout title="Specialty and Fine Foods for Your Store | Fiore Foods Canada">
 
   <!-- ════════════════════════════════════════════════════════════
-       2 · HERO — SPLIT LAYOUT
-  ════════════════════════════════════════════════════════════════ -->
-  <section class="flex flex-col sm:flex-row overflow-hidden min-h-[500px] sm:max-h-[600px]">
-    <div class="hero-left relative flex items-center justify-center text-center w-full sm:w-5/12 px-6 sm:px-10 md:px-14 py-12 sm:py-14 flex-shrink-0 min-h-[300px] sm:min-h-[500px]">
-      <div class="absolute inset-0 flex items-end justify-start pointer-events-none overflow-hidden">
-        <img src="img/olives-4 (1).png" alt="Decoración de fondo" class="w-56 opacity-60 mb-2 ml-4 parallax parallax-1">
-      </div>
-      <div class="relative z-10 max-w-xs mx-auto">
-        <h1 class="font-cap text-white leading-snug mb-4" style="font-size:clamp(22px,3.5vw,30px)">
-          Get Your Business Ready for the Holidays
-        </h1>
-        <div class="inline-block px-4 py-2 mt-2 rounded font-rob text-sm font-bold tracking-wide" style="background:#80131d; color:white;">
-          Pre-order deadline: June 5th
-        </div>
-      </div>
+       1 · HERO SECTION — SPLIT LAYOUT
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="relative bg-black py-12 md:py-20 overflow-hidden border-b border-gray-900 animate-fadeIn">
+    <!-- Premium Ambient Background Image with Dark Cinematic legibility filter -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+      <img 
+        src="/img/fiore-foods-canada-spain-italy-mediterranean-food.jpg" 
+        alt="Mediterranean Gourmet Food Background" 
+        class="w-full h-full object-cover select-none" 
+      />
+      <!-- Black cinematic filter overlay at 65% opacity to ensure the food image is nicely visible while keeping text legible -->
+      <div class="absolute inset-0 bg-black/65 z-10"></div>
     </div>
-    <div class="relative flex-1 overflow-hidden">
-      <img src="img/fiore-foods-holiday-seasonal-2026.jpg" alt="Specialty gourmet foods spread" class="absolute inset-0 w-full h-full object-cover">
-    </div>
-  </section>
 
-  <!-- ════════════════════════════════════════════════════════════
-       3 · INSTRUCTION BANNER
-  ════════════════════════════════════════════════════════════════ -->
-  <section style="background:#acb370">
-    <div class="max-w-5xl mx-auto px-6 py-6">
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-0">
-        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
-          <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">1</div>
-          <div>
-            <p class="font-cap text-white text-lg font-bold">Select Products</p>
-            <p class="text-white/70 text-base font-rob">Choose case quantities from the catalogue</p>
+    <!-- Botanical decorative overlays (white outline with low opacity for the dark theme) -->
+    <div class="absolute inset-0 flex items-end justify-start pointer-events-none overflow-hidden opacity-5 z-10">
+      <img src="/img/olives-4 (1).png" alt="" class="w-64 -ml-10 invert">
+    </div>
+    
+    <div class="max-w-7xl mx-auto px-6 relative z-20">
+      <!-- HERO SPLIT GRID: 1 column on mobile, 2 columns on lg (desktop) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        
+        <!-- Left Column: Copy & Bold Metrics (Styled with High Contrast White & Brand Green with strong drop shadow) -->
+        <div class="flex flex-col justify-center">
+          <span class="font-rob text-[15px] font-bold uppercase tracking-widest mb-3 block" style="color: #acb370; text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8);">
+            Premium Importer & Distributor
+          </span>
+          <h1 class="font-cap leading-tight mb-6 text-white" style="font-size: clamp(28px, 4.5vw, 44px); text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.95), 0 0 12px rgba(0, 0, 0, 0.85);">
+            Specialty and Fine Foods<br class="hidden md:inline"> for Your Store
+          </h1>
+          <p class="font-rob text-lg md:text-xl text-white leading-relaxed mb-6 font-bold" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8);">
+            We distribute exclusive Spanish, Italian, and Mediterranean gourmet brands to specialty food stores, fine food retailers, and independent grocers across Canada. 
+            <span class="font-bold block mt-2 text-[#acb370]">Direct import from Spain & Italy.</span>
+          </p>
+          <div class="border-t border-white/20 pt-6 mt-2">
+            <p class="font-rob text-[15px] md:text-base text-white leading-relaxed" style="text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8);">
+              <strong class="font-bold text-[#acb370]">400+ specialty SKUs</strong> · Direct Spanish & Italian importing · Ontario, Quebec, BC, Alberta geographical coverage · <strong class="font-bold text-[#acb370]">Wholesale pricing</strong> for retailers
+            </p>
           </div>
         </div>
-        <div class="arrow-step hidden sm:block px-3">›</div>
-        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
-          <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">2</div>
-          <div>
-            <p class="font-cap text-white text-lg font-bold">Enter Your Info</p>
-            <p class="text-white/70 text-base font-rob">Fill in your contact &amp; company details</p>
-          </div>
+
+        <!-- Right Column: Lead Form -->
+        <div class="w-full">
+          <AdsForm />
         </div>
-        <div class="arrow-step hidden sm:block px-3">›</div>
-        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
-          <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">3</div>
-          <div>
-            <p class="font-cap text-white text-lg font-bold">Send Pre-Order</p>
-            <p class="text-white/70 text-base font-rob">Submit — we'll prepare your Sales Order</p>
-          </div>
-        </div>
+
       </div>
     </div>
   </section>
 
-  <section class="max-w-4xl mx-auto px-6 py-12 text-center">
-    <p class="text-[18px] font-rob text-gray-700 leading-relaxed">
-      <strong style="color:#80131d">The holiday season is just around the corner — </strong>
-      and we want to make sure your shelves are stocked with the best. Here are our top picks for this year's Holiday Catalogue. Place your pre-order before June 5th and give your customers a season to remember.
-    </p>
+  <!-- ════════════════════════════════════════════════════════════
+       2 · FEATURED PRODUCTS (Exactly 6 WooCommerce Items, No Pills)
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-16 bg-white border-b border-gray-100">
+    <div class="max-w-[1440px] mx-auto px-6">
+      
+      <div class="text-center mb-12">
+        <p class="font-rob font-medium text-[15px] tracking-[.25em] uppercase mb-2" style="color:#acb370">Our Selection</p>
+        <h2 class="font-cap text-3xl text-brand" style="color:#80131d">Featured Mediterranean Specialties</h2>
+        <p class="font-rob text-sm text-gray-500 mt-2">Curated premium global brands direct to Canadian specialty stores</p>
+      </div>
+
+      <!-- FEATURED PRODUCTS GRID: 1 column on mobile, 2 columns on md/lg -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        {finalFeaturedProducts.map((p) => (
+          <div class="showcase-prow prow bg-white rounded-3xl overflow-hidden flex flex-row items-center p-5 gap-4 shadow-sm border border-cream hover:shadow-md cursor-pointer transition-all duration-300" onclick={`openShowcaseDetailsModal(${p.id})`}>
+            <!-- Product image -->
+            <div class="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-white rounded-2xl flex items-center justify-center overflow-hidden aspect-square relative">
+              {p.img ? (
+                <img src={p.img} alt={p.name} class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105" referrerpolicy="no-referrer" />
+              ) : (
+                <div class="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Image</div>
+              )}
+            </div>
+
+            <!-- Details -->
+            <div class="flex-1 min-w-0 flex flex-col justify-between h-full">
+              <div>
+                <h3 class="font-cap text-carbon leading-snug mb-1 text-sm sm:text-base lg:text-lg font-bold pr-2">{p.name}</h3>
+                <p class="font-rob text-gray-500 text-[13px] sm:text-sm leading-relaxed mb-3 clamp2" set:html={p.description}></p>
+              </div>
+              
+              <div class="flex items-center justify-between mt-auto pt-2 border-t border-gray-100/50 flex-wrap gap-2">
+                <button type="button" onclick={`event.stopPropagation(); openShowcaseDetailsModal(${p.id});`} class="btn btn-red px-4 py-1.5 text-[13px]">
+                  Details
+                </button>
+                <div class="flex flex-col items-end text-right">
+                  <span class="font-rob text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#acb370]/30 text-[#acb370] uppercase tracking-wider bg-[#acb370]/5 mb-1">
+                    {p.category}
+                  </span>
+                  <p class="font-rob text-xs sm:text-sm text-gray-400 font-medium"><span class="font-bold text-brand" style="color:#80131d">Case:</span> {p.caseSize}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </div>
   </section>
 
-  <Catalogue products={finalProducts} />
-
   <!-- ════════════════════════════════════════════════════════════
-       5 · ABOUT SECTION
-  ════════════════════════════════════════════════════════════════ -->
-  <section class="relative overflow-hidden py-20" style="background:#f5f3ef">
-    <div class="botanical-float" aria-hidden="true">
-      <img src="img/thyme.png" alt="Decoración de fondo" class="parallax parallax-2 w-[260px] opacity-100">
-    </div>
-    <div class="relative max-w-7xl mx-auto px-6 z-10">
-      <div class="grid lg:grid-cols-2 gap-14 items-center">
-        <div>
-          <p class="font-rob text-xs font-medium mb-2" style="color:#a81624; letter-spacing:.05em">Good taste</p>
-          <h2 class="font-cap leading-snug mb-5" style="color:#a81624; font-size:clamp(20px,2.5vw,28px)">
-            WE ARE QUALITY,<br>COMMITMENT,<br>RESPONSIBILITY AND<br>EXPERTISE
-          </h2>
-          <p class="font-rob font-medium text-base lg:text-lg leading-relaxed mb-4" style="color:#a81624">
-            Fiore Foods results from our family's passion for delicious food and the vision of having the most specialized gourmet products, straight from the Mediterranean.
-          </p>
-          <p class="font-rob text-base lg:text-lg leading-relaxed text-gray-600 mb-3">
-            We are an ever-growing team committed to sourcing high-quality and diverse food products to specialty food stores, Cheese Shops, Restaurants, Online markets and more.
-          </p>
-          <p class="font-rob text-base lg:text-lg leading-relaxed text-gray-600 mb-3">
-            Our portfolio includes from tasty and savoury snacks to the most exquisite artisan sweets.
-          </p>
-          <p class="font-rob text-base lg:text-lg font-bold mb-7" style="color:#80131d">
-            Your customers will fall in love with our collections.
-          </p>
-          <button onclick="document.getElementById('catalogue')?.scrollIntoView({behavior: 'smooth'})" class="btn btn-red px-8 py-3 text-sm font-cap tracking-wide">
-            GET STARTED
+       3 · BRANDS SHOWCASE SECTION (Pills navigation + Arrow buttons + Dots navigation synchronized)
+       ════════════════════════════════════════════════════════════════ -->
+  <section class="py-16 bg-cream/30 border-b border-gray-100/60" id="brands-section">
+    <div class="max-w-[1440px] mx-auto px-6">
+      
+      <div class="text-center mb-10">
+        <p class="font-rob font-medium text-[15px] tracking-[.25em] uppercase mb-2" style="color:#acb370">Brand Spotlight</p>
+        <h2 class="font-cap text-3xl text-brand" style="color:#80131d">Explore Our Exclusive Partners</h2>
+        <p class="font-rob text-sm text-gray-500 mt-2">Browse catalog selections by brand · Navigate using brand pills, navigation arrows, or dots</p>
+      </div>
+
+      <!-- Brands Showcase Container -->
+      <div id="brands-showcase-container" class="relative group/showcase max-w-6xl mx-auto">
+        
+        <!-- Brand Pills Navigation -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mb-8" id="brand-pills">
+          {finalBrandsData.map((brand, idx) => (
+            <button 
+              type="button" 
+              data-index={idx}
+              class={`brand-pill btn px-5 py-2.5 text-sm font-rob rounded-full border transition-all duration-300 ${
+                idx === 0 
+                  ? 'btn-red shadow-md font-bold' 
+                  : 'bg-white border-gray-200 text-gray-600 hover:border-brand hover:text-brand'
+              }`}
+            >
+              {brand.name}
+            </button>
+          ))}
+        </div>
+
+        <!-- Viewport containing dynamic slides with arrows -->
+        <div class="relative bg-white border border-gray-100 rounded-3xl p-6 sm:p-10 shadow-sm min-h-[450px]">
+          
+          <!-- Prev Arrow overlay (Left) -->
+          <button 
+            type="button" 
+            id="carousel-prev" 
+            class="absolute left-2 sm:-left-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white hover:bg-brand text-brand hover:text-white flex items-center justify-center shadow-md z-20 border border-gray-200 transition-all duration-300 hover:scale-105"
+            aria-label="Previous Brand"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          <!-- Next Arrow overlay (Right) -->
+          <button 
+            type="button" 
+            id="carousel-next" 
+            class="absolute right-2 sm:-right-5 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white hover:bg-brand text-brand hover:text-white flex items-center justify-center shadow-md z-20 border border-gray-200 transition-all duration-300 hover:scale-105"
+            aria-label="Next Brand"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <!-- Dynamic Brand Slides -->
+          {finalBrandsData.map((brand, brandIdx) => (
+            <div 
+              id={`brand-slide-${brandIdx}`}
+              class={`brand-slide transition-opacity duration-300 ${brandIdx === 0 ? 'block' : 'hidden'}`}
+            >
+              <div class="text-center mb-8 px-10">
+                <span class="font-rob text-xs font-bold text-gray-400 uppercase tracking-widest text-[#acb370]">Brand Selection</span>
+                <h3 class="font-cap text-2xl text-brand mt-1" style="color: #80131d;">{brand.name} Products</h3>
+              </div>
+
+              <!-- Brand Grid: Strictly 1 column on mobile, 2 columns on md/lg (4 cards) -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto px-2 sm:px-6">
+                {brand.products.map((p) => (
+                  <div class="showcase-prow prow bg-white rounded-3xl overflow-hidden flex flex-row items-center p-5 gap-4 shadow-sm border border-cream hover:shadow-md cursor-pointer transition-all duration-300" onclick={`openShowcaseDetailsModal(${p.id})`}>
+                    <!-- Product image -->
+                    <div class="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-white rounded-2xl flex items-center justify-center overflow-hidden aspect-square relative">
+                      {p.img ? (
+                        <img src={p.img} alt={p.name} class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105" referrerpolicy="no-referrer" />
+                      ) : (
+                        <div class="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Image</div>
+                      )}
+                    </div>
+
+                    <!-- Details -->
+                    <div class="flex-1 min-w-0 flex flex-col justify-between h-full">
+                      <div>
+                        <h3 class="font-cap text-carbon leading-snug mb-1 text-sm sm:text-base lg:text-lg font-bold pr-2">{p.name}</h3>
+                        <p class="font-rob text-gray-500 text-[13px] sm:text-sm leading-relaxed mb-3 clamp2" set:html={p.description}></p>
+                      </div>
+                      
+                      <div class="flex items-center justify-between mt-auto pt-2 border-t border-gray-100/50 flex-wrap gap-2">
+                        <button type="button" onclick={`event.stopPropagation(); openShowcaseDetailsModal(${p.id});`} class="btn btn-red px-4 py-1.5 text-[13px]">
+                          Details
+                        </button>
+                        <div class="flex flex-col items-end text-right">
+                          <span class="font-rob text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#acb370]/30 text-[#acb370] uppercase tracking-wider bg-[#acb370]/5 mb-1">
+                            {p.category}
+                          </span>
+                          <p class="font-rob text-xs sm:text-sm text-gray-400 font-medium"><span class="font-bold text-brand" style="color:#80131d">Case:</span> {p.caseSize}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <!-- Navigation Dots -->
+          <div class="flex items-center justify-center gap-2 mt-8" id="carousel-dots">
+            {finalBrandsData.map((_, idx) => (
+              <button 
+                type="button" 
+                data-index={idx}
+                class={`carousel-dot w-3 h-3 rounded-full transition-all border ${
+                  idx === 0 
+                    ? 'bg-brand border-brand w-5' 
+                    : 'bg-gray-200 border-transparent hover:bg-gray-400'
+                }`}
+                aria-label={`Go to brand ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+        </div>
+
+        <!-- Global bottom CTA with smooth scroll -->
+        <div class="text-center mt-10">
+          <button 
+            type="button" 
+            id="cta-scroll-top"
+            class="btn btn-red px-10 py-4 font-cap text-base shadow-lg transition-transform hover:-translate-y-0.5"
+          >
+            Get Wholesale Catalog & Prices
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 13l-7 7-7-7m14-6l-7 7-7-7" />
+            </svg>
           </button>
         </div>
-        <div class="relative h-[440px]">
-          <div class="absolute top-0 left-0 w-[62%] h-[62%] rounded-2xl overflow-hidden shadow-lg">
-            <img src="img/pic-fiore-foods-2.jpg" alt="Gourmet Mediterranean food spread" class="w-full h-full object-cover">
-          </div>
-          <div class="absolute bottom-0 right-0 w-[58%] h-[62%] rounded-2xl overflow-hidden shadow-lg" style="border:4px solid #f5f3ef">
-            <img src="img/fiore-foods-mediterraneo-fot-02.jpg" alt="Olive grove harvesting" class="w-full h-full object-cover">
-          </div>
-        </div>
+
       </div>
+
     </div>
   </section>
+
+  <!-- Pass full showcase products payload to client-side JS -->
+  <script is:inline set:html={`window.SHOWCASE_PRODUCTS = ${JSON.stringify([...finalFeaturedProducts, ...finalBrandsData.flatMap(b => b.products)])};`} />
+
+  <!-- Client-side tab switching and details modal overriding logic -->
+  <script is:inline>
+    document.addEventListener('DOMContentLoaded', () => {
+      let activeIndex = 0;
+      const totalSlides = 6;
+
+      const brandPills = document.querySelectorAll('.brand-pill');
+      const brandSlides = document.querySelectorAll('.brand-slide');
+      const brandDots = document.querySelectorAll('.carousel-dot');
+      
+      const prevBtn = document.getElementById('carousel-prev');
+      const nextBtn = document.getElementById('carousel-next');
+      const ctaBtn = document.getElementById('cta-scroll-top');
+
+      // ── Synchronized brand controller ──
+      function updateShowcaseBrand(newIndex) {
+        if (newIndex === activeIndex) return;
+
+        // Hide current slide & deselect current pill/dot
+        brandSlides[activeIndex].classList.add('hidden');
+        brandSlides[activeIndex].classList.remove('block');
+        
+        brandPills[activeIndex].classList.remove('btn-red', 'shadow-md', 'font-bold');
+        brandPills[activeIndex].classList.add('bg-white', 'border-gray-200', 'text-gray-600');
+        
+        brandDots[activeIndex].classList.remove('bg-brand', 'border-brand', 'w-5');
+        brandDots[activeIndex].classList.add('bg-gray-200', 'border-transparent');
+
+        // Select new index
+        activeIndex = newIndex;
+
+        // Show new active slide & select new pill/dot
+        brandSlides[activeIndex].classList.remove('hidden');
+        brandSlides[activeIndex].classList.add('block');
+        
+        brandPills[activeIndex].classList.remove('bg-white', 'border-gray-200', 'text-gray-600');
+        brandPills[activeIndex].classList.add('btn-red', 'shadow-md', 'font-bold');
+        
+        brandDots[activeIndex].classList.remove('bg-gray-200', 'border-transparent');
+        brandDots[activeIndex].classList.add('bg-brand', 'border-brand', 'w-5');
+      }
+
+      // Brand Pills Click listeners
+      brandPills.forEach((pill) => {
+        pill.addEventListener('click', () => {
+          const targetIdx = parseInt(pill.getAttribute('data-index') || '0', 10);
+          updateShowcaseBrand(targetIdx);
+        });
+      });
+
+      // Brand Dots Click listeners
+      brandDots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const targetIdx = parseInt(dot.getAttribute('data-index') || '0', 10);
+          updateShowcaseBrand(targetIdx);
+        });
+      });
+
+      // Arrow buttons listeners
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          const targetIdx = (activeIndex - 1 + totalSlides) % totalSlides;
+          updateShowcaseBrand(targetIdx);
+        });
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          const targetIdx = (activeIndex + 1) % totalSlides;
+          updateShowcaseBrand(targetIdx);
+        });
+      }
+
+      // ── CTA Scroll logic ──
+      if (ctaBtn) {
+        ctaBtn.addEventListener('click', () => {
+          const formElement = document.getElementById('ads-preorder');
+          if (formElement) {
+            formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+      }
+
+      // ── Modal Display Logic Overriding Price and Stepper ──
+      const PRODUCTS = window.SHOWCASE_PRODUCTS || [];
+
+      window.openShowcaseDetailsModal = function(id) {
+        const p = PRODUCTS.find(x => x.id === id);
+        if (!p) return;
+
+        const imgEl = document.getElementById('details-img');
+        if (imgEl) {
+          imgEl.src = p.img || 'https://placehold.co/600x600?text=No+Image';
+          imgEl.setAttribute('data-zoom-src', p.img || 'https://placehold.co/600x600?text=No+Image');
+        }
+
+        const titleEl = document.getElementById('details-title');
+        if (titleEl) titleEl.textContent = p.name;
+
+        const sizeEl = document.getElementById('details-size');
+        if (sizeEl) sizeEl.textContent = p.caseSize;
+
+        const descEl = document.getElementById('details-desc');
+        if (descEl) descEl.innerHTML = p.description || 'No description available.';
+
+        // Hide price/quantity stepper block completely
+        const modalPriceBlock = document.querySelector('#details-modal .mt-auto');
+        if (modalPriceBlock) {
+          modalPriceBlock.style.display = 'none';
+        }
+
+        // Add close button at the bottom of the details modal side-pane
+        let closeBtn = document.getElementById('modal-showcase-close-btn');
+        if (!closeBtn && descEl) {
+          closeBtn = document.createElement('button');
+          closeBtn.id = 'modal-showcase-close-btn';
+          closeBtn.type = 'button';
+          closeBtn.className = 'btn btn-red px-8 py-3 text-sm font-rob mt-6 w-full sm:w-auto block';
+          closeBtn.textContent = 'Close Details';
+          closeBtn.onclick = () => {
+            const m = document.getElementById('details-modal');
+            if (m) m.classList.add('hidden');
+          };
+          descEl.appendChild(closeBtn);
+        }
+
+        // Show details modal
+        const modal = document.getElementById('details-modal');
+        if (modal) modal.classList.remove('hidden');
+      };
+    });
+  </script>
+
+  <style is:global>
+    .brand-pill.btn-red {
+      background-color: #80131d !important;
+      color: #ffffff !important;
+      border-color: #80131d !important;
+    }
+    .bg-brand {
+      background-color: #80131d !important;
+    }
+    .border-brand {
+      border-color: #80131d !important;
+    }
+    .text-brand {
+      color: #80131d !important;
+    }
+    .animate-fadeIn {
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 
 </Layout>

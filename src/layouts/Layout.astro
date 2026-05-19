@@ -1,11 +1,13 @@
 ---
+import Footer from '../components/Footer.astro';
+
 export interface Props {
   title: string;
   robots?: string;
   gtmId?: string;
 }
 
-const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
+const { title, robots = "index, follow", gtmId } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -14,21 +16,19 @@ const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
   <meta charset="UTF-8">
   <meta name="robots" content={robots}>
   
-  <!-- Google Tag Manager (Head) -->
-  {gtmId && (
-    <script is:inline set:html={`
-      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','${gtmId}');
-    `} />
-  )}
+  <!-- Google Tag Manager -->
+  <script is:inline>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-XXXXXX');
+  </script>
   <!-- End Google Tag Manager -->
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Fiore Foods - Holiday Seasonal Pre-Order Portal</title>
+  <title>{title}</title>
   
   <!-- Open Graph & Twitter Cards -->
   <meta property="og:title" content="Fiore Foods - Holiday Seasonal Pre-Order Portal" />
@@ -46,8 +46,6 @@ const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Capriola&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-
-
 
   <style is:global>
     *, *::before, *::after { box-sizing: border-box; }
@@ -119,13 +117,12 @@ const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
 
 <body class="bg-cream font-rob">
   <!-- Google Tag Manager (noscript) -->
-  {gtmId && (
-    <noscript>
-      <iframe src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
-        height="0" width="0" style="display:none;visibility:hidden"></iframe>
-    </noscript>
-  )}
+  <noscript is:inline>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXX"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe>
+  </noscript>
   <!-- End Google Tag Manager (noscript) -->
+
 <div class="parallax-container">
 
 <!-- ════════════════════════════════════════════════════════════
@@ -134,25 +131,14 @@ const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
 <header id="top" class="sticky top-0 z-50 bg-white" style="box-shadow:0 2px 18px rgba(0,0,0,.09)">
   <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
 
-    <!-- ── Fiore Foods Logo (SVG, faithful to brand) ── -->
+    <!-- ── Fiore Foods Logo ── -->
     <a href="#top" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" class="flex items-center gap-2.5 flex-shrink-0 select-none" style="text-decoration:none">
       <img src="/img/logo-fiore.png" alt="Fiore Foods Logo" class="w-32 object-contain">
     </a>
 
-    <!-- ── Right: Contact + Cart widget ── -->
+    <!-- ── Right: Contact Us ── -->
     <div class="flex items-center gap-3">
-      <a href="#footer" class="btn btn-outline px-5 py-2 text-sm hidden sm:inline-flex font-rob">Contact Us</a>
-
-      <!-- Cart: shows $ total + unit count -->
-      <button id="cart-btn" onclick="if(window.goToForm) window.goToForm(); else document.getElementById('preorder')?.scrollIntoView({behavior: 'smooth', block: 'start'})" class="btn btn-red px-4 py-2 text-sm font-rob">
-        <!-- Cart icon -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
-        </svg>
-        <span id="hdr-total" class="font-bold text-sm">$0.00</span>
-        <span class="text-white/70 hidden sm:inline text-xs">·</span>
-        <span id="hdr-units" class="text-xs text-white/80 hidden sm:inline">0 cases</span>
-      </button>
+      <a href="#ads-preorder" class="btn btn-outline px-5 py-2 text-sm font-rob">Contact Us</a>
     </div>
 
   </div>
@@ -160,75 +146,8 @@ const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
 
 <slot />
 
-<!-- ════════════════════════════════════════════════════════════
-     7 · FOOTER  (light cream background — matches reference)
-════════════════════════════════════════════════════════════════ -->
-<footer id="footer" style="background:#f5f3ef; border-top:1px solid #e8e3db">
-  <div class="max-w-7xl mx-auto px-8 pt-14 pb-10">
-    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
+<Footer />
 
-      <!-- Brand column -->
-      <div>
-        <div class="flex items-center gap-2 mb-4">
-          <img src="/img/logo-fiore.png" alt="Fiore Foods Logo" class="w-32 object-contain">
-        </div>
-        <p class="font-rob font-bold text-xs leading-relaxed tracking-wider uppercase" style="color:#80131d">
-          Specialty and Fine Food<br>Distributor in Canada
-        </p>
-      </div>
-
-      <!-- Company -->
-      <div>
-        <h4 class="font-cap text-base mb-5" style="color:#80131d">Company</h4>
-        <ul class="font-rob text-[15px] space-y-2.5 text-gray-500">
-          <li><a href="https://fiorefoodscanada.com/" class="hover:text-[#80131d] transition-colors" target="_blank" rel="noopener noreferrer">Home</a></li>
-          <li><a href="https://fiorefoodscanada.com/who-we-are" class="hover:text-[#80131d] transition-colors" target="_blank" rel="noopener noreferrer">Who we are</a></li>
-          <li><a href="https://fiorefoodscanada.com/shop" class="hover:text-[#80131d] transition-colors" target="_blank" rel="noopener noreferrer">Shop</a></li>
-          <li><a href="https://fiorefoodscanada.com/contact-us" class="hover:text-[#80131d] transition-colors" target="_blank" rel="noopener noreferrer">Contact us</a></li>
-        </ul>
-      </div>
-
-      <!-- Get in touch -->
-      <div>
-        <h4 class="font-cap text-base mb-5" style="color:#80131d">Get in touch</h4>
-        <ul class="font-rob text-[15px] space-y-2.5 text-gray-500">
-          <li><a href="mailto:info@fiorefoodscanada.com" class="hover:text-[#80131d] transition-colors">info@fiorefoodscanada.com</a></li>
-          <li><a href="tel:+19057277900" class="hover:text-[#80131d] transition-colors">Call us: +1 (905) 727-7900</a></li>
-          <li class="text-[13px] text-gray-400 leading-relaxed mt-1">
-            <a href="https://www.google.com/maps/place/9+Allaura+Blvd+%231A,+Aurora,+ON+L4G+3N2,+Canada/@43.9834746,-79.4636559,17z/data=!3m1!4b1!4m5!3m4!1s0x882ad4067b3aaaab:0x8aa464dc1e2c1403!8m2!3d43.9834708!4d-79.4614672?shorturl=1" target="_blank" rel="noopener noreferrer" class="hover:text-[#80131d] transition-colors block">
-              9 Allaura Blvd. Unit 1,<br>Aurora, Ontario, Canada. L4G 3N2.
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Follow us -->
-      <div>
-        <h4 class="font-cap text-sm mb-5" style="color:#80131d">Follow us</h4>
-        <a href="https://www.instagram.com/fiorefoodscanada/" target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border flex items-center justify-center transition-colors group hover:border-[#80131d]"
-                style="border-color:#ccc" aria-label="Instagram">
-          <svg class="w-4 h-4 text-gray-400 group-hover:text-[#80131d] transition-colors" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-        </a>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Bottom strip -->
-  <div class="footer-strip">
-    <div class="max-w-7xl mx-auto px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
-      <p class="font-rob text-[13px] text-gray-500">© 2021 Fiore Food · All Rights Reserved</p>
-      <div class="flex gap-6 font-rob text-[13px] text-gray-500">
-        <a href="https://fiorefoodscanada.com/privacy-policy" target="_blank" rel="noopener noreferrer" class="hover:text-[#80131d] transition-colors">Privacy Policy</a>
-        <a href="https://fiorefoodscanada.com/return-policy" target="_blank" rel="noopener noreferrer" class="hover:text-[#80131d] transition-colors">Return Policy</a>
-        <a href="https://fiorefoodscanada.com/terms-and-conditions" target="_blank" rel="noopener noreferrer" class="hover:text-[#80131d] transition-colors">Terms and Conditions</a>
-      </div>
-    </div>
-  </div>
-
-</footer>
 </div>
 
 <!-- Floating back to catalog button -->

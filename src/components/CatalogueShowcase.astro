@@ -1,0 +1,354 @@
+---
+// src/components/CatalogueShowcase.astro
+// Showcase component fetching B2B products from WooCommerce and displaying them elegantly with no price or shopping cart features.
+
+// Mock data to fallback gracefully
+const BASE_PRODUCTS_MOCK = [
+  {
+    id: 101,
+    sku: 'LF-APRIC-12X310G',
+    name: 'La Favorita Apricots with Moscato Wine',
+    description: 'Product of Italy. Level up your holiday selections with these delicious premium apricots.',
+    caseSize: '12x310g',
+    price: 92.88,
+    img: '/img/La-Favorita-Apricots-with-Moscato-Wine (1).jpg',
+    category: 'Holiday Seasonal'
+  },
+  {
+    id: 102,
+    sku: 'GF-DRFIG-20X500G',
+    name: 'Good Fig Dried Figs',
+    description: 'Calabazita variety of Figs. Tender and all natural. Gluten, and Sulphites free. Product of Spain.',
+    caseSize: '20x500g',
+    price: 116.00,
+    img: '/img/GF-Dried-Figs.jpg',
+    category: 'Holiday Seasonal'
+  },
+  {
+    id: 103,
+    sku: 'SDJ-1573-EVOO-9X500ML',
+    name: 'Señorío DJR 1573 Extra Virgin Olive Oil',
+    description: 'Exclusive reserva extravirgin olive oil brought exclusively for the holidays. Picked manually and milled immediately.',
+    caseSize: '9x500ml',
+    price: 241.65,
+    img: '/img/Senorio-DJR-1573-EVOO-1.jpg',
+    category: 'Holiday Seasonal'
+  },
+  {
+    id: 104,
+    sku: 'PAN-DPAN-4X950G',
+    name: 'Pancracio Dark Chocolate Panettone',
+    description: 'Prepared in small batches, with the exclusive ÚNICO Pancracio 68% cocoa coating, made from Criollo and Trinitario beans.',
+    caseSize: '4x950g',
+    price: 245.96,
+    img: '/img/Pancracio-Dark-Chocolate-Pannetone-e1668454992856 (1).jpg',
+    category: 'Holiday Seasonal'
+  }
+];
+
+let finalProducts = BASE_PRODUCTS_MOCK;
+
+try {
+  const WC_API_URL = import.meta.env.WC_API_URL;
+  const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY;
+  const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET;
+
+  if (WC_API_URL && WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
+    const authHeader = 'Basic ' + btoa(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`);
+    let allData = [];
+    let page = 1;
+    let hasMore = true;
+
+    // Get category ID for 'holiday-seasonal' to filter API response
+    let categoryId = null;
+    try {
+      const catUrl = WC_API_URL + `/products/categories?slug=holiday-seasonal`;
+      const catRes = await fetch(catUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (catRes.ok) {
+        const catData = await catRes.json();
+        if (catData && catData.length > 0) {
+          categoryId = catData[0].id;
+        }
+      }
+    } catch (e) {
+      console.warn("[WC API] Could not fetch category ID for holiday-seasonal", e);
+    }
+
+    while (hasMore) {
+      let fetchUrl = WC_API_URL + `/products?per_page=100&page=${page}&status=publish&orderby=menu_order&order=asc`;
+      if (categoryId) {
+        fetchUrl += `&category=${categoryId}`;
+      }
+
+      const res = await fetch(fetchUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        allData = allData.concat(data);
+        if (data.length < 100) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
+
+    if (allData.length > 0) {
+      finalProducts = allData.reduce((acc: any[], item: any) => {
+        const hasHolidaySeasonal = item.categories?.some((c: any) => c.slug === 'holiday-seasonal');
+        if (!hasHolidaySeasonal) return acc;
+
+        // Group dynamically by their secondary subcategories or "Holiday Seasonal"
+        let finalCategory = "Holiday Seasonal";
+        const otherCat = item.categories?.find((c: any) => c.slug !== 'holiday-seasonal');
+        if (otherCat) {
+          finalCategory = otherCat.name;
+        }
+
+        let rawContent = item.description ? item.description : (item.short_description || "");
+        let plainDesc = "";
+        if (rawContent) {
+          let preSpaced = rawContent.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
+          plainDesc = preSpaced.replace(/<\/?[^>]+(>|$)/g, " ").replace(/\s+/g, " ").trim();
+        }
+
+        let caseSize = "N/A";
+        const caseRegex = /Case(?: Size)?\s*:\s*([^<\n\.]+)/i;
+        const match = plainDesc.match(caseRegex);
+
+        if (match && match[1]) {
+          caseSize = match[1].trim();
+          plainDesc = plainDesc.replace(match[0], "").trim();
+          plainDesc = plainDesc.replace(/^[\.,\-\s]+|[\.,\-\s]+$/g, "");
+        } else {
+          const caseAttr = item.attributes?.find((a: any) => 
+            a.name.toLowerCase() === 'case size' || a.name.toLowerCase() === 'casesize'
+          );
+          if (caseAttr && caseAttr.options?.length > 0) {
+            caseSize = caseAttr.options[0];
+          }
+        }
+
+        const mappedProd = {
+          id: item.id,
+          sku: item.sku || `WC-${item.id}`,
+          name: item.name.replace(/&amp;/g, '&'),
+          description: plainDesc,
+          caseSize: caseSize,
+          price: parseFloat(item.price) || 0,
+          img: item.images && item.images.length > 0 ? item.images[0].src : null,
+          category: finalCategory
+        };
+
+        acc.push(mappedProd);
+        return acc;
+      }, []);
+    }
+  }
+} catch (error) {
+  console.error('[WC API] Network or fetch error. Using mock products instead.', error);
+}
+---
+
+<!-- ════════════════════════════════════════════════════════════
+     4 · PRODUCT CATALOGUE SHOWCASE (Grid 1 col móvil, 2 en md)
+════════════════════════════════════════════════════════════════ -->
+<section id="catalogue" class="py-16 bg-cream/10 border-t border-gray-100">
+  <div class="max-w-[1440px] mx-auto px-6">
+
+    <div class="text-center mb-10">
+      <p class="font-rob font-medium text-xs tracking-[.2em] uppercase mb-2" style="color:#acb370">Our Catalog</p>
+      <h2 class="font-cap text-3xl text-brand" style="color:#80131d">Curated Wholesale Products</h2>
+      <p class="font-rob text-sm text-gray-500 mt-2">Explore our premium imports below · Click any card or Details button to view high-resolution details</p>
+    </div>
+
+    <!-- Category Filters -->
+    <div id="showcase-filters-container" class="sticky z-40 bg-cream/95 backdrop-blur-sm py-4 mb-8" style="top:80px;">
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+        <!-- Desktop pills -->
+        <div id="showcase-filters-desktop" class="hidden sm:flex flex-wrap items-center justify-center gap-2 mx-auto"></div>
+        
+        <!-- Mobile dropdown -->
+        <div id="showcase-filters-mobile" class="sm:hidden w-full relative">
+          <button onclick="toggleShowcaseCategories()" type="button" class="w-full flex items-center justify-between bg-white px-4 py-2.5 rounded-full border border-gray-200 text-sm font-medium font-rob shadow-sm">
+            <span id="showcase-category-label">Filter by Category: All</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+          </button>
+          <div id="showcase-category-dropdown" class="hidden absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product list (1 column mobile, 2 columns md/lg) -->
+    <div id="showcase-product-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {finalProducts.map(p => (
+        <div class="showcase-prow prow bg-white rounded-3xl overflow-hidden flex flex-row items-center p-5 gap-4 shadow-sm border border-cream hover:shadow-md cursor-pointer transition-all duration-300" onclick={`openShowcaseDetailsModal(${p.id})`} data-id={p.id} data-category={p.category}>
+          <!-- Product image -->
+          <div class="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-white rounded-2xl flex items-center justify-center overflow-hidden aspect-square relative">
+            {p.img ? (
+              <img src={p.img} alt={p.name} class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 hover:scale-105" referrerpolicy="no-referrer" />
+            ) : (
+              <div class="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Image</div>
+            )}
+          </div>
+
+          <!-- Details -->
+          <div class="flex-1 min-w-0 flex flex-col justify-between h-full">
+            <div>
+              <h3 class="font-cap text-carbon leading-snug mb-1 text-sm sm:text-base lg:text-lg font-bold pr-2">{p.name}</h3>
+              <p class="font-rob text-gray-500 text-[13px] sm:text-sm leading-relaxed mb-3 clamp2" set:html={p.description}></p>
+            </div>
+            
+            <div class="flex items-center justify-between mt-auto pt-2 border-t border-gray-100/50 flex-wrap gap-2">
+              <button type="button" onclick={`event.stopPropagation(); openShowcaseDetailsModal(${p.id});`} class="btn btn-red px-4 py-1.5 text-[13px]">
+                Details
+              </button>
+              <div class="flex flex-col items-end text-right">
+                <span class="font-rob text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-[#acb370]/30 text-[#acb370] uppercase tracking-wider bg-[#acb370]/5 mb-1">
+                  {p.category}
+                </span>
+                <p class="font-rob text-xs sm:text-sm text-gray-400 font-medium"><span class="font-bold text-brand" style="color:#80131d">Case:</span> {p.caseSize}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
+
+<!-- Pass products payload to client-side JS -->
+<script is:inline set:html={`window.SHOWCASE_PRODUCTS = ${JSON.stringify(finalProducts)};`} />
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const PRODUCTS = window.SHOWCASE_PRODUCTS || [];
+
+    // Dynamically extract categories
+    const allCats = PRODUCTS.map(p => p.category).filter(Boolean);
+    const CATEGORIES = ["All", ...new Set(allCats)].sort();
+
+    let activeCategory = "All";
+
+    function renderFilters() {
+      // Desktop
+      const desktopContainer = document.getElementById('showcase-filters-desktop');
+      if (desktopContainer) {
+        desktopContainer.innerHTML = CATEGORIES.map(c => `
+          <button type="button" class="btn ${activeCategory === c ? 'btn-red shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:border-brand hover:text-brand'} px-5 py-2 text-sm font-rob rounded-full transition-all">${c}</button>
+        `).join('');
+
+        // Attach click listeners
+        desktopContainer.querySelectorAll('button').forEach((btn, idx) => {
+          btn.addEventListener('click', () => filterProducts(CATEGORIES[idx]));
+        });
+      }
+
+      // Mobile
+      const mobileLabel = document.getElementById('showcase-category-label');
+      const mobileDropdown = document.getElementById('showcase-category-dropdown');
+      if (mobileLabel && mobileDropdown) {
+        mobileLabel.textContent = `Filter by Category: ${activeCategory}`;
+        mobileDropdown.innerHTML = CATEGORIES.map(c => `
+          <button type="button" class="w-full text-left px-4 py-3 text-sm font-rob border-b border-gray-50 last:border-0 ${activeCategory === c ? 'bg-cream text-brand font-bold' : 'hover:bg-gray-50 transition-colors'}">${c}</button>
+        `).join('');
+
+        // Attach click listeners for mobile
+        mobileDropdown.querySelectorAll('button').forEach((btn, idx) => {
+          btn.addEventListener('click', () => {
+            filterProducts(CATEGORIES[idx]);
+            toggleShowcaseCategories();
+          });
+        });
+      }
+    }
+
+    window.toggleShowcaseCategories = function() {
+      const dropdown = document.getElementById('showcase-category-dropdown');
+      if (dropdown) dropdown.classList.toggle('hidden');
+    };
+
+    function filterProducts(cat) {
+      activeCategory = cat;
+      renderFilters();
+      
+      const rows = document.querySelectorAll('.showcase-prow');
+      rows.forEach(row => {
+        const rowId = parseInt(row.getAttribute('data-id'));
+        const p = PRODUCTS.find(x => x.id === rowId);
+        if (p) {
+          if (activeCategory === "All" || p.category === activeCategory) {
+            row.style.display = 'flex';
+          } else {
+            row.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Modal display logic overriding price and stepper
+    window.openShowcaseDetailsModal = function(id) {
+      const p = PRODUCTS.find(x => x.id === id);
+      if (!p) return;
+
+      const imgEl = document.getElementById('details-img');
+      if (imgEl) {
+        imgEl.src = p.img || 'https://placehold.co/600x600?text=No+Image';
+        imgEl.setAttribute('data-zoom-src', p.img || 'https://placehold.co/600x600?text=No+Image');
+      }
+
+      const titleEl = document.getElementById('details-title');
+      if (titleEl) titleEl.textContent = p.name;
+
+      const sizeEl = document.getElementById('details-size');
+      if (sizeEl) sizeEl.textContent = p.caseSize;
+
+      const descEl = document.getElementById('details-desc');
+      if (descEl) descEl.innerHTML = p.description || 'No description available.';
+
+      // Hide price/quantity stepper block completely
+      const modalPriceBlock = document.querySelector('#details-modal .mt-auto');
+      if (modalPriceBlock) {
+        modalPriceBlock.style.display = 'none';
+      }
+
+      // Add a simple Close button at the bottom of the description
+      let closeBtn = document.getElementById('modal-showcase-close-btn');
+      if (!closeBtn && descEl) {
+        closeBtn = document.createElement('button');
+        closeBtn.id = 'modal-showcase-close-btn';
+        closeBtn.type = 'button';
+        closeBtn.className = 'btn btn-red px-8 py-3 text-sm font-rob mt-6 w-full sm:w-auto block';
+        closeBtn.textContent = 'Close Details';
+        closeBtn.onclick = () => {
+          const m = document.getElementById('details-modal');
+          if (m) m.classList.add('hidden');
+        };
+        descEl.appendChild(closeBtn);
+      }
+
+      // Show details modal
+      const modal = document.getElementById('details-modal');
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    // Initialize showcase
+    renderFilters();
+    filterProducts("All");
+  });
+</script>
