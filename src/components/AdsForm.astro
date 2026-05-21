@@ -117,6 +117,8 @@
         submitBtn.style.cursor = 'not-allowed';
       }
 
+      const turnstileResponse = document.querySelector('[name="cf-turnstile-response"]')?.value;
+
       const payload = {
         businessName: document.getElementById('ads-f-business-name').value.trim(),
         contactName: document.getElementById('ads-f-contact-name').value.trim(),
@@ -124,6 +126,7 @@
         province: document.getElementById('ads-f-province').value,
         businessType: document.getElementById('ads-f-business-type').value,
         businessWebsite: document.getElementById('ads-f-business-website').value.trim(),
+        turnstile_token: turnstileResponse,
         timestamp: new Date().toISOString()
       };
 
