@@ -8,32 +8,32 @@ import AdsForm from '../components/AdsForm.astro';
 const FEATURED_PRODUCTS = [
   {
     name: "La Narval (Sardinas)",
-    category: "Seafood",
+    brand: "La Narval",
     img: "https://placehold.co/600x600/f5f3ef/80131d?text=La+Narval"
   },
   {
     name: "Pancracio (Caramelized Nuts Milk Chocolate Bar)",
-    category: "Chocolates",
+    brand: "Pancracio",
     img: "https://placehold.co/600x600/f5f3ef/80131d?text=Pancracio"
   },
   {
-    name: "Lady Joseph (Smoked Hot Paprika & Olive Oil Crackers)",
-    category: "Biscuits",
+    name: "Lady Joseph (Parmesan Cheese & Olive Oil Crackers)",
+    brand: "Lady Joseph",
     img: "https://placehold.co/600x600/f5f3ef/80131d?text=Lady+Joseph"
   },
   {
     name: "Origen (Red Pepper Jam)",
-    category: "Preserves",
+    brand: "Origen",
     img: "https://placehold.co/600x600/f5f3ef/80131d?text=Origen"
   },
   {
     name: "Don Jose (Jamón serrano)",
-    category: "Charcuterie",
+    brand: "Don Jose",
     img: "https://placehold.co/600x600/f5f3ef/80131d?text=Don+Jose"
   },
   {
     name: "Inessence (Black Truffle Potato Crisp)",
-    category: "Snacks",
+    brand: "Inessence",
     img: "https://placehold.co/600x600/f5f3ef/80131d?text=Inessence"
   }
 ];
@@ -125,21 +125,16 @@ const BRANDS_DATA = [
     </div>
 
     <!-- Hero mobile image - responsive delivery -->
-    <picture class="mx-auto px-6 mb-8" style="display: none;">
-      <source media="(max-width: 1023px)" srcset="/img/fiore-foods-canada-spain-italy-mediterranean-food-Ontario-m.jpg">
+    <div class="mx-auto px-6 mb-8 max-w-6xl" style="display: none !important;">
       <img src="/img/fiore-foods-canada-spain-italy-mediterranean-food-Ontario-m.jpg" alt="Fiore Foods Canada mobile hero" class="w-full rounded-3xl object-cover shadow-lg" />
-    </picture>
-    <script is:inline>
-      const pic = document.querySelector('picture');
-      if (pic) {
-        if (window.innerWidth < 1024) {
-          pic.style.display = 'block';
+    </div>
+    <style>
+      @media (max-width: 1023px) {
+        .mx-auto.px-6.mb-8.max-w-6xl {
+          display: block !important;
         }
-        window.addEventListener('resize', () => {
-          pic.style.display = window.innerWidth < 1024 ? 'block' : 'none';
-        });
       }
-    </script>
+    </style>
     
     <div class="max-w-7xl mx-auto px-6 relative z-10">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -204,9 +199,9 @@ const BRANDS_DATA = [
               <h3 class="font-cap text-base sm:text-lg text-carbon leading-snug font-bold mb-2 truncate">
                 {prod.name}
               </h3>
-              <!-- Categoría pequeña y acentuada -->
+              <!-- Brand pequeño y acentuado -->
               <span class="inline-block px-3 py-1 bg-white text-xs font-bold uppercase tracking-wider rounded-full border border-gray-100/60" style="color: #80131d;">
-                {prod.category}
+                {prod.brand}
               </span>
             </div>
           </div>
