@@ -124,10 +124,22 @@ const BRANDS_DATA = [
       <img src="/img/olives-4 (1).png" alt="" class="w-64 -ml-10">
     </div>
 
-    <!-- Hero mobile image -->
-    <div class="block lg:hidden mx-auto px-6 mb-8">
+    <!-- Hero mobile image - responsive delivery -->
+    <picture class="mx-auto px-6 mb-8" style="display: none;">
+      <source media="(max-width: 1023px)" srcset="/img/fiore-foods-canada-spain-italy-mediterranean-food-Ontario-m.jpg">
       <img src="/img/fiore-foods-canada-spain-italy-mediterranean-food-Ontario-m.jpg" alt="Fiore Foods Canada mobile hero" class="w-full rounded-3xl object-cover shadow-lg" />
-    </div>
+    </picture>
+    <script is:inline>
+      const pic = document.querySelector('picture');
+      if (pic) {
+        if (window.innerWidth < 1024) {
+          pic.style.display = 'block';
+        }
+        window.addEventListener('resize', () => {
+          pic.style.display = window.innerWidth < 1024 ? 'block' : 'none';
+        });
+      }
+    </script>
     
     <div class="max-w-7xl mx-auto px-6 relative z-10">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
