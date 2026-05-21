@@ -167,6 +167,9 @@
     privacyModal.addEventListener('click', (e) => { if (e.target === privacyModal) closePrivacyModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !privacyModal.classList.contains('hidden')) closePrivacyModal(); });
 
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) {
         submitBtn.disabled = true;
