@@ -85,6 +85,14 @@
     </div>
 
     <div class="mt-5 md:mt-7 text-center">
+      <!-- Consent checkbox linking to privacy policy -->
+      <div class="mb-4 flex items-center justify-center">
+        <label class="font-rob text-xs text-gray-600 flex items-center gap-2">
+          <input id="ads-f-privacy" name="privacy_consent" type="checkbox" class="h-4 w-4" />
+          <span>I agree to the <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline">Privacy Policy</a></span>
+        </label>
+      </div>
+
       <!-- Cloudflare Turnstile container -->
       <div class="cf-turnstile mb-3 md:mb-4 flex justify-center" data-sitekey="0x4AAAAAADT3pQj5vkuU0Bn1"></div>
       
@@ -119,6 +127,17 @@
 
       const turnstileResponse = document.querySelector('[name="cf-turnstile-response"]')?.value;
 
+      const consentChecked = document.getElementById('ads-f-privacy')?.checked;
+      if (!consentChecked) {
+        alert('Please accept the Privacy Policy to continue.');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '1';
+          submitBtn.style.cursor = 'pointer';
+        }
+        return;
+      }
+
       const payload = {
         businessName: document.getElementById('ads-f-business-name').value.trim(),
         contactName: document.getElementById('ads-f-contact-name').value.trim(),
@@ -127,6 +146,7 @@
         businessType: document.getElementById('ads-f-business-type').value,
         businessWebsite: document.getElementById('ads-f-business-website').value.trim(),
         turnstile_token: turnstileResponse,
+        privacy_consent: Boolean(consentChecked),
         timestamp: new Date().toISOString()
       };
 
