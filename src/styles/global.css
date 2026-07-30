@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #80131d;
+  --color-accent: #a81624;
+  --color-green: #acb370;
+  --color-sage: #8B9765;
+  --color-cream: #f5f3ef;
+  --color-tan: #c4bbaa;
+  --color-carbon: #1a1a1a;
+  
+  --font-cap: "Capriola", sans-serif;
+  --font-rob: "Roboto", sans-serif;
+}
