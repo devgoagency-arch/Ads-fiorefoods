@@ -94,7 +94,14 @@
       </div>
 
       <!-- Cloudflare Turnstile container -->
-      <div class="cf-turnstile mb-3 md:mb-4 flex justify-center" data-sitekey="0x4AAAAAADT3pQj5vkuU0Bn1"></div>
+      <div
+        id="cf-turnstile-widget"
+        class="cf-turnstile mb-3 md:mb-4 flex justify-center"
+        data-sitekey="0x4AAAAAADT3pQj5vkuU0Bn1"
+        data-action="contact-request"
+        data-callback="onTurnstileSuccess"
+        data-error-callback="onTurnstileError"
+      ></div>
       
       <button type="submit" class="btn btn-red px-10 py-3 md:py-3.5 font-cap text-sm md:text-base w-full sm:w-auto">
         Request Our Wholesale Catalogue
@@ -111,6 +118,30 @@
 </div>
 
 <script is:inline>
+  // ── Turnstile widget lifecycle ─────────────────────────────────────────────
+  // widgetId is set by data-callback once the widget renders.
+  var _turnstileWidgetId = null;
+
+  // Called by Turnstile on successful challenge (data-callback)
+  window.onTurnstileSuccess = function(token) {
+    // token is automatically placed in the hidden cf-turnstile-response input
+    // We only need to capture the widgetId for later reset
+    _turnstileWidgetId = window.turnstile.getWidgetId
+      ? window.turnstile.getWidgetId(document.getElementById('cf-turnstile-widget'))
+      : null;
+  };
+
+  // Called by Turnstile on error (data-error-callback)
+  window.onTurnstileError = function() {
+    const btn = document.getElementById('ads-order-form')?.querySelector('button[type="submit"]');
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.style.cursor = 'pointer';
+    }
+  };
+
+  // ── Form logic ─────────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('ads-order-form');
     if (!form) return;
@@ -167,6 +198,22 @@
     privacyModal.addEventListener('click', (e) => { if (e.target === privacyModal) closePrivacyModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !privacyModal.classList.contains('hidden')) closePrivacyModal(); });
 
+    // ── Helper: reset Turnstile widget ──────────────────────────────────────
+    function resetTurnstile() {
+      if (window.turnstile) {
+        try {
+          if (_turnstileWidgetId !== null) {
+            window.turnstile.reset(_turnstileWidgetId);
+          } else {
+            // Fallback: reset by element
+            window.turnstile.reset(document.getElementById('cf-turnstile-widget'));
+          }
+        } catch (e) {
+          console.warn('Turnstile reset failed:', e);
+        }
+      }
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -177,7 +224,8 @@
         submitBtn.style.cursor = 'not-allowed';
       }
 
-      const turnstileResponse = document.querySelector('[name="cf-turnstile-response"]')?.value;
+      // Read Turnstile token (placed by the widget into a hidden input)
+      const turnstileToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
 
       const consentChecked = document.getElementById('ads-f-privacy')?.checked;
       if (!consentChecked) {
@@ -197,13 +245,14 @@
         province: document.getElementById('ads-f-province').value,
         businessType: document.getElementById('ads-f-business-type').value,
         businessWebsite: document.getElementById('ads-f-business-website').value.trim(),
-        turnstile_token: turnstileResponse,
+        turnstile_token: turnstileToken,
         privacy_consent: Boolean(consentChecked),
         timestamp: new Date().toISOString()
       };
 
       try {
-        const response = await fetch('https://hook.eu1.make.com/p2y0iv7yw5or87vjmhkniwf2fjd1ejyo', {
+        // POST to our server-side API endpoint (runs siteverify, then forwards to Make.com)
+        const response = await fetch('/api/submit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -211,12 +260,11 @@
           body: JSON.stringify(payload)
         });
 
-        if (response.ok) {
-          form.reset();
+        const result = await response.json().catch(() => ({}));
 
-          if (window.turnstile) {
-            window.turnstile.reset();
-          }
+        if (response.ok && result.ok) {
+          form.reset();
+          resetTurnstile();
 
           window.dataLayer = window.dataLayer || [];
           window.dataLayer.push({
@@ -229,10 +277,13 @@
 
           alert('Your request has been successfully submitted! We will reach out to you shortly.');
         } else {
+          // Bot/token failure: reset so user can try again with a fresh token
+          resetTurnstile();
           alert('There was a problem submitting your request. Please try again.');
         }
       } catch (error) {
         console.error('Submission error:', error);
+        resetTurnstile();
         alert('There was a network problem. Please check your connection and try again.');
       } finally {
         if (submitBtn) {
@@ -244,3 +295,4 @@
     });
   });
 </script>
+
