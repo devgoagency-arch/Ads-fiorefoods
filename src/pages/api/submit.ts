@@ -33,8 +33,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   // ── 3. Hostname allowlist ──────────────────────────────────────────────────
+  const hostnamesEnv = import.meta.env.TURNSTILE_HOSTNAMES || (typeof process !== 'undefined' ? process.env.TURNSTILE_HOSTNAMES : '');
   const expectedHostnames = new Set(
-    (import.meta.env.TURNSTILE_HOSTNAMES ?? '')
+    (hostnamesEnv ?? '')
       .split(',')
       .map((h: string) => h.trim())
       .filter(Boolean),
@@ -48,7 +49,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   // ── 4. Siteverify ──────────────────────────────────────────────────────────
-  const secret = import.meta.env.TURNSTILE_SECRET;
+  const secret = import.meta.env.TURNSTILE_SECRET || (typeof process !== 'undefined' ? process.env.TURNSTILE_SECRET : '');
   if (!secret || secret === 'REPLACE_WITH_YOUR_WIDGET_SECRET') {
     console.error('[turnstile] TURNSTILE_SECRET is not configured');
     return new Response(JSON.stringify({ ok: false, error: 'server_config' }), {
