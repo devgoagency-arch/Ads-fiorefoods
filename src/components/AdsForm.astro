@@ -3,38 +3,42 @@
 // Form component for Google Ads landing page - Canadian B2B retail catalog request
 ---
 
-<div id="ads-preorder" class="bg-white rounded-3xl p-5 md:p-8 shadow-sm border border-cream">
-  <div class="text-center mb-5 md:mb-8">
-    <p class="font-rob font-medium text-[15px] tracking-[.2em] uppercase mb-1.5 md:mb-2" style="color:#acb370">Exclusive Access</p>
-    <h2 class="font-cap text-xl md:text-2xl lg:text-3xl text-brand" style="color:#80131d">Contact Specialty Food Experts</h2>
-    <p class="font-rob text-xs md:text-sm text-gray-500 mt-1 md:mt-2">Get wholesale catalog, pricing, and stock details within 24 business hours.</p>
+<div id="ads-preorder" class="bg-white rounded-3xl p-4 md:p-6 shadow-sm border border-cream">
+  <div class="text-center mb-4 md:mb-6">
+    <p class="font-rob font-medium text-sm tracking-[.2em] uppercase mb-1" style="color:#acb370">Exclusive Access</p>
+    <h2 class="font-cap text-lg md:text-xl lg:text-2xl text-brand" style="color:#80131d">Contact Specialty Food Experts</h2>
+    <p class="font-rob text-[11px] md:text-xs text-gray-500 mt-1">Get wholesale catalog, pricing, and stock details within 24 business hours.</p>
   </div>
 
-  <form id="ads-order-form" class="space-y-4 md:space-y-5">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 md:gap-5">
+  <form id="ads-order-form" class="space-y-3 md:space-y-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
       <!-- 1. BUSINESS NAME * -->
-      <div class="flex flex-col gap-1 md:gap-1.5">
-        <label class="font-rob text-xs md:text-sm font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Name <span style="color:#80131d">*</span></label>
-        <input id="ads-f-business-name" name="business_name" type="text" required placeholder="Enter business name" class="fld w-full border border-gray-200 rounded-full px-4 py-2 md:py-2.5 text-sm md:text-base font-rob transition-all">
+      <div class="flex flex-col gap-0.5 md:gap-1 md:col-span-2">
+        <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Name <span style="color:#80131d">*</span></label>
+        <input id="ads-f-business-name" name="business_name" type="text" required placeholder="Enter business name" class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all">
       </div>
 
       <!-- 2. CONTACT NAME * -->
-      <div class="flex flex-col gap-1 md:gap-1.5">
-        <label class="font-rob text-xs md:text-sm font-medium uppercase tracking-wide" style="color:#1a1a1a">Contact Name <span style="color:#80131d">*</span></label>
-        <input id="ads-f-contact-name" name="contact_name" type="text" required placeholder="Jane Smith" class="fld w-full border border-gray-200 rounded-full px-4 py-2 md:py-2.5 text-sm md:text-base font-rob transition-all">
+      <div class="flex flex-col gap-0.5 md:gap-1">
+        <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Name <span style="color:#80131d">*</span></label>
+        <input id="ads-f-first-name" name="first_name" type="text" required placeholder="Jane" class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all">
+      </div>
+      <div class="flex flex-col gap-0.5 md:gap-1">
+        <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Last name <span style="color:#80131d">*</span></label>
+        <input id="ads-f-last-name" name="last_name" type="text" required placeholder="Smith" class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all">
       </div>
 
       <!-- 3. BUSINESS EMAIL * -->
-      <div class="flex flex-col gap-1 md:gap-1.5">
-        <label class="font-rob text-xs md:text-sm font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Email <span style="color:#80131d">*</span></label>
-        <input id="ads-f-business-email" name="business_email" type="email" required placeholder="name@company.com" class="fld w-full border border-gray-200 rounded-full px-4 py-2 md:py-2.5 text-sm md:text-base font-rob transition-all">
+      <div class="flex flex-col gap-0.5 md:gap-1">
+        <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Email <span style="color:#80131d">*</span></label>
+        <input id="ads-f-business-email" name="business_email" type="email" required placeholder="name@company.com" class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all">
       </div>
 
       <!-- 4. PROVINCE * (Ontario selected by default) -->
-      <div class="flex flex-col gap-1 md:gap-1.5">
-        <label class="font-rob text-xs md:text-sm font-medium uppercase tracking-wide" style="color:#1a1a1a">Province <span style="color:#80131d">*</span></label>
+      <div class="flex flex-col gap-0.5 md:gap-1">
+        <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Province <span style="color:#80131d">*</span></label>
         <div class="relative">
-          <select id="ads-f-province" name="province" required class="fld w-full border border-gray-200 rounded-full px-4 py-2 md:py-2.5 text-sm md:text-base font-rob transition-all appearance-none bg-white pr-8">
+          <select id="ads-f-province" name="province" required class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all appearance-none bg-white pr-8">
             <option value="" disabled>Select province...</option>
             <option value="Ontario" selected>Ontario</option>
             <option value="Quebec">Quebec</option>
@@ -50,17 +54,17 @@
             <option value="Yukon">Yukon</option>
             <option value="Nunavut">Nunavut</option>
           </select>
-          <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
           </svg>
         </div>
       </div>
 
       <!-- 5. BUSINESS TYPE * -->
-      <div class="flex flex-col gap-1 md:gap-1.5">
-        <label class="font-rob text-xs md:text-sm font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Type <span style="color:#80131d">*</span></label>
+      <div class="flex flex-col gap-0.5 md:gap-1">
+        <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Type <span style="color:#80131d">*</span></label>
         <div class="relative">
-          <select id="ads-f-business-type" name="business_type" required class="fld w-full border border-gray-200 rounded-full px-4 py-2 md:py-2.5 text-sm md:text-base font-rob transition-all appearance-none bg-white pr-8">
+          <select id="ads-f-business-type" name="business_type" required class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all appearance-none bg-white pr-8">
             <option value="" disabled selected>Select type...</option>
             <option>Specialty Food Store</option>
             <option>Restaurant / Café</option>
@@ -71,24 +75,24 @@
             <option>Distributor / Wholesale</option>
             <option>Other</option>
           </select>
-          <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
           </svg>
         </div>
       </div>
 
       <!-- 6. BUSINESS WEBSITE (Optional) -->
-      <div class="flex flex-col gap-1 md:gap-1.5">
-        <label class="font-rob text-xs md:text-sm font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Website</label>
-        <input id="ads-f-business-website" name="business_website" type="text" placeholder="www.yourwebsite.com" class="fld w-full border border-gray-200 rounded-full px-4 py-2 md:py-2.5 text-sm md:text-base font-rob transition-all">
+      <div class="flex flex-col gap-0.5 md:gap-1">
+        <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Website</label>
+        <input id="ads-f-business-website" name="business_website" type="text" placeholder="www.yourwebsite.com" class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all">
       </div>
     </div>
 
-    <div class="mt-5 md:mt-7 text-center">
+    <div class="mt-4 md:mt-5 text-center">
       <!-- Consent checkbox linking to privacy policy -->
-      <div class="mb-4 flex items-center justify-center">
-        <label class="font-rob text-xs text-gray-600 flex items-center gap-2">
-          <input id="ads-f-privacy" name="privacy_consent" type="checkbox" class="h-4 w-4" />
+      <div class="mb-3 flex items-center justify-center">
+        <label class="font-rob text-[11px] md:text-xs text-gray-600 flex items-center gap-2">
+          <input id="ads-f-privacy" name="privacy_consent" type="checkbox" class="h-3.5 w-3.5" />
           <span>I agree to the <a href="/privacy-policy" class="text-brand hover:underline open-privacy-modal">Privacy Policy</a></span>
         </label>
       </div>
@@ -96,21 +100,21 @@
       <!-- Cloudflare Turnstile container -->
       <div
         id="cf-turnstile-widget"
-        class="cf-turnstile mb-3 md:mb-4 flex justify-center"
+        class="cf-turnstile mb-2 md:mb-3 flex justify-center"
         data-sitekey="0x4AAAAAADT3pQj5vkuU0Bn1"
         data-action="contact-request"
         data-callback="onTurnstileSuccess"
         data-error-callback="onTurnstileError"
       ></div>
       
-      <button type="submit" class="btn btn-red px-10 py-3 md:py-3.5 font-cap text-sm md:text-base w-full sm:w-auto">
+      <button type="submit" class="btn btn-red px-8 py-2.5 md:py-3 font-cap text-xs md:text-sm w-full sm:w-auto">
         Request Our Wholesale Catalogue
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
         </svg>
       </button>
       
-      <p class="text-gray-400 text-xs mt-2.5 md:mt-3 font-rob">
+      <p class="text-gray-400 text-[11px] mt-2 font-rob">
         We'll reply within 24 business hours
       </p>
     </div>
@@ -240,7 +244,7 @@
 
       const payload = {
         businessName: document.getElementById('ads-f-business-name').value.trim(),
-        contactName: document.getElementById('ads-f-contact-name').value.trim(),
+        contactName: document.getElementById('ads-f-first-name').value.trim() + ' ' + document.getElementById('ads-f-last-name').value.trim(),
         businessEmail: document.getElementById('ads-f-business-email').value.trim(),
         province: document.getElementById('ads-f-province').value,
         businessType: document.getElementById('ads-f-business-type').value,
