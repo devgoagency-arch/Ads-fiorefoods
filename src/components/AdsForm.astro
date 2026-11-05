@@ -89,6 +89,15 @@
     </div>
 
     <div class="mt-4 md:mt-5 text-center">
+      <!-- Lead attribution hidden fields -->
+      <input id="ads-f-gclid" name="gclid" type="hidden" value="" />
+      <input id="ads-f-utm-source" name="utm_source" type="hidden" value="" />
+      <input id="ads-f-utm-medium" name="utm_medium" type="hidden" value="" />
+      <input id="ads-f-utm-campaign" name="utm_campaign" type="hidden" value="" />
+      <input id="ads-f-utm-term" name="utm_term" type="hidden" value="" />
+      <input id="ads-f-utm-content" name="utm_content" type="hidden" value="" />
+      <input id="ads-f-landing-page" name="landing_page" type="hidden" value="" />
+
       <!-- Consent checkbox linking to privacy policy -->
       <div class="mb-3 flex items-center justify-center">
         <label class="font-rob text-[11px] md:text-xs text-gray-600 flex items-center gap-2">
@@ -145,10 +154,109 @@
     }
   };
 
+  // ── Lead attribution capture (URL -> sessionStorage -> hidden inputs) ──────
+  var ATTR_STORAGE_KEY = 'fiore_ads_attr';
+  var ATTR_URL_PARAMS = [
+    'gclid',
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_term',
+    'utm_content'
+  ];
+  var ATTR_INPUT_IDS = {
+    gclid: 'ads-f-gclid',
+    utm_source: 'ads-f-utm-source',
+    utm_medium: 'ads-f-utm-medium',
+    utm_campaign: 'ads-f-utm-campaign',
+    utm_term: 'ads-f-utm-term',
+    utm_content: 'ads-f-utm-content',
+    landing_page: 'ads-f-landing-page'
+  };
+  var _memoryAttrFallback = null;
+
+  function readStoredAttribution() {
+    var base = {
+      gclid: '',
+      utm_source: '',
+      utm_medium: '',
+      utm_campaign: '',
+      utm_term: '',
+      utm_content: '',
+      landing_page: ''
+    };
+    try {
+      var raw = window.sessionStorage.getItem(ATTR_STORAGE_KEY);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          Object.keys(base).forEach(function(key) {
+            if (typeof parsed[key] === 'string') {
+              base[key] = parsed[key];
+            }
+          });
+        }
+      }
+      return base;
+    } catch (e) {
+      if (_memoryAttrFallback) {
+        Object.keys(base).forEach(function(key) {
+          if (typeof _memoryAttrFallback[key] === 'string') {
+            base[key] = _memoryAttrFallback[key];
+          }
+        });
+      }
+      return base;
+    }
+  }
+
+  function captureAttribution() {
+    var stored = readStoredAttribution();
+
+    if (!stored.landing_page) {
+      stored.landing_page = window.location.href || '';
+    }
+
+    var params = new URLSearchParams(window.location.search);
+    ATTR_URL_PARAMS.forEach(function(param) {
+      if (params.has(param)) {
+        var val = params.get(param);
+        if (val !== null && val !== '') {
+          stored[param] = val;
+        }
+      }
+    });
+
+    _memoryAttrFallback = stored;
+    try {
+      window.sessionStorage.setItem(ATTR_STORAGE_KEY, JSON.stringify(stored));
+    } catch (e) {
+      // sessionStorage unavailable; _memoryAttrFallback preserves current page values
+    }
+
+    return stored;
+  }
+
+  function syncAttributionInputs() {
+    var attr = readStoredAttribution();
+    Object.keys(ATTR_INPUT_IDS).forEach(function(key) {
+      var el = document.getElementById(ATTR_INPUT_IDS[key]);
+      if (el) {
+        el.value = attr[key] || '';
+      }
+    });
+    return attr;
+  }
+
+  captureAttribution();
+  syncAttributionInputs();
+
   // ── Form logic ─────────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('ads-order-form');
     if (!form) return;
+
+    syncAttributionInputs();
 
     // Privacy modal elements
     const privacyModal = document.createElement('div');
@@ -221,6 +329,8 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
+      const attr = syncAttributionInputs();
+
       const submitBtn = form.querySelector('button[type="submit"]');
       if (submitBtn) {
         submitBtn.disabled = true;
@@ -250,6 +360,13 @@
         province: document.getElementById('ads-f-province').value,
         businessType: document.getElementById('ads-f-business-type').value,
         businessWebsite: document.getElementById('ads-f-business-website').value.trim(),
+        gclid: document.getElementById('ads-f-gclid')?.value ?? attr.gclid ?? '',
+        utm_source: document.getElementById('ads-f-utm-source')?.value ?? attr.utm_source ?? '',
+        utm_medium: document.getElementById('ads-f-utm-medium')?.value ?? attr.utm_medium ?? '',
+        utm_campaign: document.getElementById('ads-f-utm-campaign')?.value ?? attr.utm_campaign ?? '',
+        utm_term: document.getElementById('ads-f-utm-term')?.value ?? attr.utm_term ?? '',
+        utm_content: document.getElementById('ads-f-utm-content')?.value ?? attr.utm_content ?? '',
+        landing_page: document.getElementById('ads-f-landing-page')?.value ?? attr.landing_page ?? '',
         turnstile_token: turnstileToken,
         privacy_consent: Boolean(consentChecked),
         timestamp: new Date().toISOString()
@@ -269,6 +386,7 @@
 
         if (response.ok && result.ok) {
           form.reset();
+          syncAttributionInputs();
           resetTurnstile();
 
           window.dataLayer = window.dataLayer || [];
