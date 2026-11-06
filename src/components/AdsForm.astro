@@ -89,6 +89,15 @@
     </div>
 
     <div class="mt-4 md:mt-5 text-center">
+      <!-- Lead attribution hidden fields -->
+      <input id="ads-f-gclid" name="gclid" type="hidden" value="" />
+      <input id="ads-f-utm-source" name="utm_source" type="hidden" value="" />
+      <input id="ads-f-utm-medium" name="utm_medium" type="hidden" value="" />
+      <input id="ads-f-utm-campaign" name="utm_campaign" type="hidden" value="" />
+      <input id="ads-f-utm-term" name="utm_term" type="hidden" value="" />
+      <input id="ads-f-utm-content" name="utm_content" type="hidden" value="" />
+      <input id="ads-f-landing-page" name="landing_page" type="hidden" value="" />
+
       <!-- Consent checkbox linking to privacy policy -->
       <div class="mb-3 flex items-center justify-center">
         <label class="font-rob text-[11px] md:text-xs text-gray-600 flex items-center gap-2">
@@ -124,13 +133,13 @@
 <script is:inline>
   // ── Turnstile widget lifecycle ─────────────────────────────────────────────
   // widgetId is set by data-callback once the widget renders.
-  var _turnstileWidgetId = null;
+  window._turnstileWidgetId = null;
 
   // Called by Turnstile on successful challenge (data-callback)
   window.onTurnstileSuccess = function(token) {
     // token is automatically placed in the hidden cf-turnstile-response input
     // We only need to capture the widgetId for later reset
-    _turnstileWidgetId = window.turnstile.getWidgetId
+    window._turnstileWidgetId = window.turnstile && window.turnstile.getWidgetId
       ? window.turnstile.getWidgetId(document.getElementById('cf-turnstile-widget'))
       : null;
   };
@@ -144,28 +153,46 @@
       btn.style.cursor = 'pointer';
     }
   };
+</script>
+
+<script>
+  import {
+    captureAttribution,
+    syncAttributionInputs,
+    getAttributionForSubmit,
+  } from '../lib/leadAttribution';
+
+  // ── Lead attribution capture (URL -> sessionStorage -> hidden inputs) ──────
+  captureAttribution();
+  syncAttributionInputs();
 
   // ── Form logic ─────────────────────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('ads-order-form');
+  function initAdsForm() {
+    const form = document.getElementById('ads-order-form') as HTMLFormElement | null;
     if (!form) return;
 
+    syncAttributionInputs();
+
     // Privacy modal elements
-    const privacyModal = document.createElement('div');
-    privacyModal.id = 'privacy-modal';
-    privacyModal.className = 'hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60';
-    privacyModal.innerHTML = `
-      <div class="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
-        <button id="privacy-modal-close" type="button" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">\n          <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\">\n            <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"/>\n          </svg>\n        </button>
-        <div id="privacy-modal-content" class="prose text-sm text-gray-700"></div>
-      </div>
-    `;
-    document.body.appendChild(privacyModal);
+    let privacyModal = document.getElementById('privacy-modal') as HTMLDivElement | null;
+    if (!privacyModal) {
+      privacyModal = document.createElement('div');
+      privacyModal.id = 'privacy-modal';
+      privacyModal.className = 'hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60';
+      privacyModal.innerHTML = `
+        <div class="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 relative">
+          <button id="privacy-modal-close" type="button" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800">\n          <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"w-6 h-6\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\">\n            <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M6 18L18 6M6 6l12 12\"/>\n          </svg>\n        </button>
+          <div id="privacy-modal-content" class="prose text-sm text-gray-700"></div>
+        </div>
+      `;
+      document.body.appendChild(privacyModal);
+    }
 
     const modalContent = document.getElementById('privacy-modal-content');
     const modalCloseBtn = document.getElementById('privacy-modal-close');
 
-    async function openPrivacyModal(url) {
+    async function openPrivacyModal(url: string) {
+      if (!privacyModal || !modalContent) return;
       try {
         modalContent.innerHTML = '<p class="text-center text-sm text-gray-500">Loading…</p>';
         privacyModal.classList.remove('hidden');
@@ -185,6 +212,7 @@
     }
 
     function closePrivacyModal() {
+      if (!privacyModal || !modalContent) return;
       privacyModal.classList.add('hidden');
       modalContent.innerHTML = '';
     }
@@ -193,24 +221,28 @@
     document.querySelectorAll('.open-privacy-modal').forEach((el) => {
       el.addEventListener('click', (ev) => {
         ev.preventDefault();
-        openPrivacyModal(el.href);
+        openPrivacyModal((el as HTMLAnchorElement).href);
       });
     });
 
     // Close handlers
     modalCloseBtn?.addEventListener('click', closePrivacyModal);
     privacyModal.addEventListener('click', (e) => { if (e.target === privacyModal) closePrivacyModal(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !privacyModal.classList.contains('hidden')) closePrivacyModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && privacyModal && !privacyModal.classList.contains('hidden')) closePrivacyModal(); });
 
     // ── Helper: reset Turnstile widget ──────────────────────────────────────
     function resetTurnstile() {
-      if (window.turnstile) {
+      const win = window as unknown as {
+        turnstile?: { reset: (target: unknown) => void };
+        _turnstileWidgetId?: unknown;
+      };
+      if (win.turnstile) {
         try {
-          if (_turnstileWidgetId !== null) {
-            window.turnstile.reset(_turnstileWidgetId);
+          if (win._turnstileWidgetId !== null && win._turnstileWidgetId !== undefined) {
+            win.turnstile.reset(win._turnstileWidgetId);
           } else {
             // Fallback: reset by element
-            window.turnstile.reset(document.getElementById('cf-turnstile-widget'));
+            win.turnstile.reset(document.getElementById('cf-turnstile-widget'));
           }
         } catch (e) {
           console.warn('Turnstile reset failed:', e);
@@ -221,7 +253,9 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const submitBtn = form.querySelector('button[type="submit"]');
+      const attr = getAttributionForSubmit();
+
+      const submitBtn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.style.opacity = '0.7';
@@ -229,9 +263,9 @@
       }
 
       // Read Turnstile token (placed by the widget into a hidden input)
-      const turnstileToken = document.querySelector('[name="cf-turnstile-response"]')?.value;
+      const turnstileToken = (document.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null)?.value;
 
-      const consentChecked = document.getElementById('ads-f-privacy')?.checked;
+      const consentChecked = (document.getElementById('ads-f-privacy') as HTMLInputElement | null)?.checked;
       if (!consentChecked) {
         alert('Please accept the Privacy Policy to continue.');
         if (submitBtn) {
@@ -243,13 +277,20 @@
       }
 
       const payload = {
-        businessName: document.getElementById('ads-f-business-name').value.trim(),
-        firstName: document.getElementById('ads-f-first-name').value.trim(),
-        lastName: document.getElementById('ads-f-last-name').value.trim(),
-        businessEmail: document.getElementById('ads-f-business-email').value.trim(),
-        province: document.getElementById('ads-f-province').value,
-        businessType: document.getElementById('ads-f-business-type').value,
-        businessWebsite: document.getElementById('ads-f-business-website').value.trim(),
+        businessName: ((document.getElementById('ads-f-business-name') as HTMLInputElement | null)?.value ?? '').trim(),
+        firstName: ((document.getElementById('ads-f-first-name') as HTMLInputElement | null)?.value ?? '').trim(),
+        lastName: ((document.getElementById('ads-f-last-name') as HTMLInputElement | null)?.value ?? '').trim(),
+        businessEmail: ((document.getElementById('ads-f-business-email') as HTMLInputElement | null)?.value ?? '').trim(),
+        province: (document.getElementById('ads-f-province') as HTMLSelectElement | null)?.value ?? '',
+        businessType: (document.getElementById('ads-f-business-type') as HTMLSelectElement | null)?.value ?? '',
+        businessWebsite: ((document.getElementById('ads-f-business-website') as HTMLInputElement | null)?.value ?? '').trim(),
+        gclid: attr.gclid,
+        utm_source: attr.utm_source,
+        utm_medium: attr.utm_medium,
+        utm_campaign: attr.utm_campaign,
+        utm_term: attr.utm_term,
+        utm_content: attr.utm_content,
+        landing_page: attr.landing_page,
         turnstile_token: turnstileToken,
         privacy_consent: Boolean(consentChecked),
         timestamp: new Date().toISOString()
@@ -269,16 +310,18 @@
 
         if (response.ok && result.ok) {
           form.reset();
+          syncAttributionInputs();
           resetTurnstile();
 
-          window.dataLayer = window.dataLayer || [];
-          window.dataLayer.push({
+          const win = window as unknown as { dataLayer?: Record<string, unknown>[] };
+          win.dataLayer = win.dataLayer || [];
+          win.dataLayer.push({
             event: 'ads_form_submit',
             conversionValue: 0.00,
             currency: 'CAD',
             leadSource: 'Google Ads Landing'
           });
-          window.dataLayer.push({ event: 'form_success' });
+          win.dataLayer.push({ event: 'form_success' });
 
           alert('Your request has been successfully submitted! We will reach out to you shortly.');
         } else {
@@ -298,6 +341,12 @@
         }
       }
     });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAdsForm);
+  } else {
+    initAdsForm();
+  }
 </script>
 
