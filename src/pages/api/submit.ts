@@ -1,6 +1,7 @@
 // src/pages/api/submit.ts
 // Server-side endpoint: validates Turnstile token, then forwards to Make.com.
 import type { APIRoute } from 'astro';
+import { isValidEmail } from '../../lib/emailValidation.ts';
 
 export const prerender = false; // force server-side in hybrid mode
 
@@ -11,13 +12,29 @@ export const POST: APIRoute = async ({ request }) => {
   // ── 1. Parse body ──────────────────────────────────────────────────────────
   let body: Record<string, unknown>;
   try {
-    body = await request.json();
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    body = parsed as Record<string, unknown>;
   } catch {
     return new Response(JSON.stringify({ ok: false, error: 'invalid_json' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
+
+  // ── 1b. Validate businessEmail ─────────────────────────────────────────────
+  if (!isValidEmail(body['businessEmail'])) {
+    return new Response(JSON.stringify({ ok: false, error: 'invalid_email' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  body['businessEmail'] = (body['businessEmail'] as string).trim();
 
   // ── 2. Turnstile token basic validation ────────────────────────────────────
   const token = body['turnstile_token'];

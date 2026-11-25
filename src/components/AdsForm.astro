@@ -31,7 +31,7 @@
       <!-- 3. BUSINESS EMAIL * -->
       <div class="flex flex-col gap-0.5 md:gap-1">
         <label class="font-rob text-[11px] md:text-xs font-medium uppercase tracking-wide" style="color:#1a1a1a">Business Email <span style="color:#80131d">*</span></label>
-        <input id="ads-f-business-email" name="business_email" type="email" required placeholder="name@company.com" class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all">
+        <input id="ads-f-business-email" name="business_email" type="email" required pattern="[^@\s]+@[^@\s]+\.[A-Za-z]{2,}" title="Please enter a complete email address, including the domain (e.g. name@company.com)." placeholder="name@company.com" class="fld w-full border border-gray-200 rounded-full px-3 py-1.5 md:py-2 text-xs md:text-sm font-rob transition-all">
       </div>
 
       <!-- 4. PROVINCE * (Ontario selected by default) -->
@@ -161,6 +161,7 @@
     syncAttributionInputs,
     getAttributionForSubmit,
   } from '../lib/leadAttribution';
+  import { isValidEmail, EMAIL_ERROR_MESSAGE } from '../lib/emailValidation';
 
   // ── Lead attribution capture (URL -> sessionStorage -> hidden inputs) ──────
   captureAttribution();
@@ -250,8 +251,24 @@
       }
     }
 
+    const emailInput = document.getElementById('ads-f-business-email') as HTMLInputElement | null;
+    emailInput?.addEventListener('input', () => {
+      emailInput.setCustomValidity('');
+    });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      const email = (emailInput?.value ?? '').trim();
+      if (!isValidEmail(email)) {
+        if (emailInput) {
+          emailInput.setCustomValidity(EMAIL_ERROR_MESSAGE);
+          emailInput.reportValidity();
+          emailInput.focus();
+        }
+        return;
+      }
+      emailInput?.setCustomValidity('');
 
       const attr = getAttributionForSubmit();
 
@@ -324,6 +341,9 @@
           win.dataLayer.push({ event: 'form_success' });
 
           alert('Your request has been successfully submitted! We will reach out to you shortly.');
+        } else if (response.status === 400 && result.error === 'invalid_email') {
+          resetTurnstile();
+          alert(EMAIL_ERROR_MESSAGE);
         } else {
           // Bot/token failure: reset so user can try again with a fresh token
           resetTurnstile();
